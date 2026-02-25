@@ -32,8 +32,8 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex flex-1">
             <div className="flex-shrink-0 flex items-center">
-              <Link href="/dashboard" className="text-xl sm:text-2xl font-bold text-blue-600">
-                👨‍👩‍👧‍👦 <span className="hidden sm:inline">Family Tracker</span><span className="sm:hidden">Tracker</span>
+              <Link href="/dashboard" className="text-xl sm:text-2xl font-bold text-blue-600 flex items-center gap-1">
+                <span>⚡</span> <span>TrakIO</span>
               </Link>
             </div>
             {/* Desktop Navigation */}

@@ -61,7 +61,7 @@ export default function ContactSupportPage() {
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
                 <div className="text-2xl mb-2">📧</div>
                 <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
-                <p className="text-sm text-gray-500">support@familytracker.app</p>
+                <p className="text-sm text-gray-500">support@trakio.in</p>
               </div>
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
                 <div className="text-2xl mb-2">🕐</div>

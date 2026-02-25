@@ -5,11 +5,11 @@ import Link from 'next/link';
 const sections = [
   {
     title: '1. Acceptance of Terms',
-    content: `By accessing or using Family Activity Tracker, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the service.`,
+    content: `By accessing or using TrakIO, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the service.`,
   },
   {
     title: '2. Description of Service',
-    content: `Family Activity Tracker is a web application that allows families to create, manage, and track daily activities, recurring schedules, milestones, and reminders. The service is provided on an "as is" and "as available" basis.`,
+    content: `TrakIO is a web application that allows users to create, manage, and track daily activities, recurring schedules, milestones, and reminders. The service is provided on an "as is" and "as available" basis.`,
   },
   {
     title: '3. Account Registration',
@@ -21,7 +21,7 @@ const sections = [
   },
   {
     title: '5. Intellectual Property',
-    content: `All content, features, and functionality of Family Activity Tracker, including but not limited to the design, code, and trademarks, are the exclusive property of the service provider. You may not copy, modify, or distribute any part of the service without explicit written permission.`,
+    content: `All content, features, and functionality of TrakIO, including but not limited to the design, code, and trademarks, are the exclusive property of the service provider. You may not copy, modify, or distribute any part of the service without explicit written permission.`,
   },
   {
     title: '6. User Content',
@@ -33,7 +33,7 @@ const sections = [
   },
   {
     title: '8. Limitation of Liability',
-    content: `Family Activity Tracker shall not be liable for any indirect, incidental, or consequential damages arising from your use of the service. Our total liability shall not exceed the amount paid by you, if any, for access to the service.`,
+    content: `TrakIO shall not be liable for any indirect, incidental, or consequential damages arising from your use of the service. Our total liability shall not exceed the amount paid by you, if any, for access to the service.`,
   },
   {
     title: '9. Changes to Terms',
@@ -61,9 +61,9 @@ export default function TermsOfServicePage() {
         {/* Intro */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 sm:p-8 mb-8">
           <p className="text-gray-700 text-sm leading-relaxed">
-            These Terms of Service govern your use of <strong>Family Activity Tracker</strong>. 
+            These Terms of Service govern your use of <strong>TrakIO</strong>. 
             Please read them carefully before using the service. These terms form a legal agreement 
-            between you and Family Activity Tracker.
+            between you and TrakIO.
           </p>
         </div>
 

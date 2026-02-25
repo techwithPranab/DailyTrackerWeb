@@ -34,7 +34,7 @@ export default function LoginPage() {
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center">
               <span className="text-3xl mr-2">📊</span>
-              <span className="text-xl font-bold text-gray-900">Family Activity Tracker</span>
+              <span className="text-xl font-bold text-gray-900">TrakIO</span>
             </Link>
             <div className="flex items-center space-x-4">
               <Link
@@ -59,7 +59,7 @@ export default function LoginPage() {
               Welcome Back!
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
-              Sign in to track your family activities and milestones
+              Sign in to your TrakIO account and pick up where you left off
             </p>
           </div>
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>

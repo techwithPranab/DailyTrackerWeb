@@ -9,7 +9,7 @@ const sections = [
   },
   {
     title: '2. How We Use Your Information',
-    content: `Your information is used solely to provide the Family Activity Tracker service. This includes displaying your activities, reminders, and milestones. We do not sell or share your personal data with third parties for marketing purposes.`,
+    content: `Your information is used solely to provide the TrakIO service. This includes displaying your activities, reminders, and milestones. We do not sell or share your personal data with third parties for marketing purposes.`,
   },
   {
     title: '3. Data Storage & Security',
@@ -21,7 +21,7 @@ const sections = [
   },
   {
     title: '5. Children\'s Privacy',
-    content: `Our service is designed for family use. We do not knowingly collect personal information from children under 13 independently. Family accounts should be managed by a parent or guardian who is responsible for the information entered.`,
+    content: `TrakIO is intended for users aged 13 and above. We do not knowingly collect personal information from children under 13. If you believe a child under 13 has created an account, please contact us immediately and we will delete the account and associated data.`,
   },
   {
     title: '6. Data Retention',
@@ -37,7 +37,7 @@ const sections = [
   },
   {
     title: '9. Contact Us',
-    content: `If you have questions about this Privacy Policy, please contact us at privacy@familytracker.app or through our Contact Support page.`,
+    content: `If you have questions about this Privacy Policy, please contact us at privacy@trakio.in or through our Contact Support page.`,
   },
 ];
 
@@ -57,7 +57,7 @@ export default function PrivacyPolicyPage() {
         {/* Intro */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 sm:p-8 mb-8">
           <p className="text-gray-700 text-sm leading-relaxed">
-            At <strong>Family Activity Tracker</strong>, we are committed to protecting your privacy. 
+            At <strong>TrakIO</strong>, we are committed to protecting your privacy. 
             This Privacy Policy explains what information we collect, how we use it, and the choices 
             you have regarding your data. By using our service, you agree to the practices described 
             in this policy.

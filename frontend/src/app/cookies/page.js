@@ -9,7 +9,7 @@ const sections = [
   },
   {
     title: 'How We Use Cookies',
-    content: `Family Activity Tracker uses a minimal number of cookies strictly necessary to operate the service. We do not use advertising or tracking cookies.`,
+    content: `TrakIO uses a minimal number of cookies strictly necessary to operate the service. We do not use advertising or tracking cookies.`,
   },
   {
     title: 'Essential Cookies',
@@ -50,7 +50,7 @@ export default function CookiePolicyPage() {
         {/* Intro */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 sm:p-8 mb-8">
           <p className="text-gray-700 text-sm leading-relaxed">
-            This Cookie Policy explains how <strong>Family Activity Tracker</strong> uses cookies and 
+            This Cookie Policy explains how <strong>TrakIO</strong> uses cookies and 
             similar technologies. We believe in transparency, so this document clearly describes what 
             we use and why.
           </p>

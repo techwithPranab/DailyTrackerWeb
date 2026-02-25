@@ -86,7 +86,7 @@ export default function HelpCenterPage() {
           <div className="text-5xl mb-4">🆘</div>
           <h1 className="text-3xl sm:text-4xl font-bold mb-4">Help Center</h1>
           <p className="text-blue-100 text-base sm:text-lg max-w-xl mx-auto">
-            Everything you need to know about using Family Activity Tracker.
+            Everything you need to know about using TrakIO.
           </p>
         </div>
       </div>

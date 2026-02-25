@@ -11,13 +11,13 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center mb-4">
-              <span className="text-3xl mr-2">📊</span>
-              <h3 className="text-2xl font-bold text-white">Family Activity Tracker</h3>
+            <div className="flex items-center mb-4 gap-2">
+              <span className="text-2xl">⚡</span>
+              <h3 className="text-2xl font-bold text-white">TrakIO</h3>
             </div>
             <p className="text-gray-400 mb-4 max-w-md">
-              Empowering families to stay organized, track activities, achieve milestones, 
-              and build better habits together. Designed for parents and children to collaborate seamlessly.
+              Your personal activity tracker — manage daily tasks, build recurring habits,
+              hit milestones, and stay on schedule. Simple, fast, and built for individuals.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-white transition-colors">
@@ -101,7 +101,7 @@ export default function Footer() {
         <div className="border-t border-gray-800 mt-8 pt-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="text-sm text-gray-400">
-              © {currentYear} Family Activity Tracker. All rights reserved.
+              © {currentYear} TrakIO. All rights reserved.
             </div>
             <div className="flex flex-wrap gap-4 md:justify-end text-sm">
               <Link href="/privacy" className="text-gray-400 hover:text-white transition-colors">

@@ -53,7 +53,7 @@ export default function RegisterPage() {
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center">
               <span className="text-3xl mr-2">📊</span>
-              <span className="text-xl font-bold text-gray-900">Family Activity Tracker</span>
+              <span className="text-xl font-bold text-gray-900">TrakIO</span>
             </Link>
             <div className="flex items-center space-x-4">
               <Link
@@ -75,7 +75,7 @@ export default function RegisterPage() {
               <span className="text-6xl">🎉</span>
             </div>
             <h2 className="text-center text-3xl font-extrabold text-gray-900">
-              Join Our Family
+              Get Started Free
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
               Create your account and start tracking activities today
