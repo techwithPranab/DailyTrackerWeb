@@ -32,7 +32,9 @@ const registerUser = async (req, res) => {
           _id: user._id,
           name: user.name,
           email: user.email,
-          token: generateToken(user._id)
+          role: user.role,
+          subscription: user.subscription,
+          token: generateToken(user._id, user.role)
         }
       });
     } else {
@@ -60,13 +62,19 @@ const loginUser = async (req, res) => {
     const user = await User.findOne({ email }).select('+password');
 
     if (user && (await user.matchPassword(password))) {
+      // Update lastLogin
+      user.lastLogin = new Date();
+      await user.save({ validateBeforeSave: false });
+
       res.json({
         success: true,
         data: {
           _id: user._id,
           name: user.name,
           email: user.email,
-          token: generateToken(user._id)
+          role: user.role,
+          subscription: user.subscription,
+          token: generateToken(user._id, user.role)
         }
       });
     } else {

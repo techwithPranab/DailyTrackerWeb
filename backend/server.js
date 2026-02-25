@@ -30,6 +30,7 @@ app.use('/api/activities', require('./routes/activities'));
 app.use('/api/milestones', require('./routes/milestones'));
 app.use('/api/reminders', require('./routes/reminders'));
 app.use('/api/progress', require('./routes/progress'));
+app.use('/api/admin', require('./routes/admin'));
 
 // Health check route
 app.get('/api/health', (req, res) => {
