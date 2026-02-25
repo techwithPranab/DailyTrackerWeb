@@ -7,12 +7,12 @@ import adminApi from '@/lib/adminApi';
 
 function StatCard({ icon, label, value, sub, color }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+    <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-3">
         <span className="text-2xl">{icon}</span>
         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${color}`}>{sub}</span>
       </div>
-      <p className="text-3xl font-extrabold text-white">{value ?? '—'}</p>
+      <p className="text-3xl font-extrabold text-gray-900">{value ?? '—'}</p>
       <p className="text-gray-500 text-sm mt-1">{label}</p>
     </div>
   );
@@ -48,7 +48,7 @@ export default function AdminDashboardPage() {
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h2 className="text-2xl font-extrabold text-white">Dashboard</h2>
+          <h2 className="text-2xl font-extrabold text-gray-900">Dashboard</h2>
           <p className="text-gray-500 text-sm mt-1">
             Overview of TrakIO — {new Date().toLocaleDateString('en-IN', { dateStyle: 'long' })}
           </p>
@@ -63,8 +63,8 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Subscription breakdown */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <h3 className="text-white font-bold mb-4">Subscription Breakdown</h3>
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
+          <h3 className="text-gray-900 font-bold mb-4">Subscription Breakdown</h3>
           {stats && (
             <div className="space-y-3">
               {[
@@ -79,7 +79,7 @@ export default function AdminDashboardPage() {
                       <span>{row.label}</span>
                       <span>{row.count} ({pct}%)</span>
                     </div>
-                    <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                       <div className={`h-full ${row.color} rounded-full`} style={{ width: `${pct}%` }} />
                     </div>
                   </div>
@@ -92,9 +92,9 @@ export default function AdminDashboardPage() {
         {/* Recent Users + Recent Activity side by side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Users */}
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-white font-bold">Recent Signups</h3>
+              <h3 className="text-gray-900 font-bold">Recent Signups</h3>
               <Link href="/admin/users" className="text-indigo-400 text-xs hover:underline">View all →</Link>
             </div>
             <div className="space-y-3">
@@ -107,13 +107,13 @@ export default function AdminDashboardPage() {
                     {u.name?.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-white text-sm font-medium truncate">{u.name}</p>
+                    <p className="text-gray-900 text-sm font-medium truncate">{u.name}</p>
                     <p className="text-gray-500 text-xs truncate">{u.email}</p>
                   </div>
                   <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${
                     u.subscription?.plan === 'pro' ? 'bg-indigo-900/60 text-indigo-300' :
                     u.subscription?.plan === 'enterprise' ? 'bg-purple-900/60 text-purple-300' :
-                    'bg-gray-800 text-gray-400'
+                    'bg-gray-100 text-gray-400'
                   }`}>
                     {u.subscription?.plan || 'free'}
                   </span>
@@ -123,9 +123,9 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Recent Activities */}
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-white font-bold">Recent Activities Created</h3>
+              <h3 className="text-gray-900 font-bold">Recent Activities Created</h3>
             </div>
             <div className="space-y-3">
               {feed?.recentActivities?.length === 0 && (
@@ -135,7 +135,7 @@ export default function AdminDashboardPage() {
                 <div key={a._id} className="flex items-start gap-3">
                   <span className="text-lg mt-0.5">📝</span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-white text-sm font-medium truncate">{a.title}</p>
+                    <p className="text-gray-900 text-sm font-medium truncate">{a.title}</p>
                     <p className="text-gray-500 text-xs">
                       by {a.user?.name || 'Unknown'} · {new Date(a.createdAt).toLocaleDateString()}
                     </p>
@@ -156,7 +156,7 @@ export default function AdminDashboardPage() {
             <Link
               key={q.href}
               href={q.href}
-              className="bg-gray-900 border border-gray-800 hover:border-indigo-700 rounded-xl p-5 group transition-colors"
+              className="bg-white border border-gray-200 hover:border-indigo-700 rounded-xl p-5 group transition-colors"
             >
               <div className="text-2xl mb-2">{q.icon}</div>
               <p className="text-white font-semibold text-sm group-hover:text-indigo-300 transition-colors">{q.label}</p>

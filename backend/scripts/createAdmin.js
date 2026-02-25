@@ -13,7 +13,13 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Admin@12345';
 const ADMIN_NAME = process.env.ADMIN_NAME || 'TrakIO Admin';
 
 async function run() {
-  await mongoose.connect(process.env.MONGO_URI);
+  const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+  if (!mongoUri) {
+    console.error('❌ No MongoDB URI found. Set MONGODB_URI in backend/.env');
+    process.exit(1);
+  }
+
+  await mongoose.connect(mongoUri);
   console.log('Connected to MongoDB');
 
   const existing = await User.findOne({ email: ADMIN_EMAIL });

@@ -77,6 +77,37 @@ export default function DashboardPage() {
           </p>
         </div>
 
+        {/* Today's Activities */}
+        <div className="mb-6 sm:mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+              Today's Activities
+            </h2>
+            <Link href="/activities" className="text-sm sm:text-base text-blue-600 hover:text-blue-700 font-medium">
+              View All →
+            </Link>
+          </div>
+          {todayActivities.length > 0 ? (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {todayActivities.map((activity) => (
+                <ActivityCard 
+                  key={activity._id} 
+                  activity={activity} 
+                  onUpdate={fetchDashboardData}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+              <div className="text-4xl mb-2">📋</div>
+              <p className="text-base sm:text-lg">No activities scheduled for today</p>
+              <Link href="/activities" className="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm sm:text-base">
+                Add Activity
+              </Link>
+            </div>
+          )}
+        </div>
+
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-lg shadow p-4 sm:p-6">
@@ -114,37 +145,6 @@ export default function DashboardPage() {
             <div className="text-base sm:text-lg font-semibold">Track Milestones</div>
             <div className="text-xs sm:text-sm opacity-90 mt-1">Set and achieve goals</div>
           </Link>
-        </div>
-
-        {/* Today's Activities */}
-        <div className="mt-6 sm:mt-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-              Today's Activities
-            </h2>
-            <Link href="/activities" className="text-sm sm:text-base text-blue-600 hover:text-blue-700 font-medium">
-              View All →
-            </Link>
-          </div>
-          {todayActivities.length > 0 ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {todayActivities.map((activity) => (
-                <ActivityCard 
-                  key={activity._id} 
-                  activity={activity} 
-                  onUpdate={fetchDashboardData}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
-              <div className="text-4xl mb-2">📋</div>
-              <p className="text-base sm:text-lg">No activities scheduled for today</p>
-              <Link href="/activities" className="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm sm:text-base">
-                Add Activity
-              </Link>
-            </div>
-          )}
         </div>
 
         {/* Upcoming Reminders */}

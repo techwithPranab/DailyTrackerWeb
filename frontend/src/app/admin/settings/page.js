@@ -7,9 +7,9 @@ import toast from 'react-hot-toast';
 
 function Section({ title, desc, children }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+    <div className="bg-white border border-gray-200 rounded-xl p-6">
       <div className="mb-5">
-        <h3 className="text-white font-bold text-base">{title}</h3>
+        <h3 className="text-gray-900 font-bold text-base">{title}</h3>
         {desc && <p className="text-gray-500 text-sm mt-0.5">{desc}</p>}
       </div>
       <div className="space-y-4">{children}</div>
@@ -34,7 +34,7 @@ function TextInput({ value, onChange, placeholder, type = 'text' }) {
       value={value || ''}
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-white placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
     />
   );
 }
@@ -128,7 +128,7 @@ export default function AdminSettingsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-extrabold text-white">App Settings</h2>
+            <h2 className="text-2xl font-extrabold text-gray-900">App Settings</h2>
             <p className="text-gray-500 text-sm mt-1">Configure TrakIO branding, plans, and features</p>
           </div>
           <button
@@ -141,13 +141,13 @@ export default function AdminSettingsPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-gray-900 border border-gray-800 rounded-xl p-1 flex-wrap">
+        <div className="flex gap-1 bg-white border border-gray-200 rounded-xl p-1 flex-wrap">
           {TABS.map(t => (
             <button
               key={t.id}
               onClick={() => setActiveTab(t.id)}
               className={`flex-1 min-w-fit px-3 py-2 rounded-lg text-xs font-medium transition-colors whitespace-nowrap
-                ${activeTab === t.id ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                ${activeTab === t.id ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:text-gray-900'}`}
             >
               {t.label}
             </button>
@@ -210,7 +210,7 @@ export default function AdminSettingsPage() {
                       min="0"
                       value={settings.plans?.[plan]?.price ?? 0}
                       onChange={e => update(`plans.${plan}.price`, Number(e.target.value))}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </Field>
                   <Field label="Max Activities" hint="-1 = unlimited">
@@ -219,7 +219,7 @@ export default function AdminSettingsPage() {
                       min="-1"
                       value={settings.plans?.[plan]?.maxActivities ?? -1}
                       onChange={e => update(`plans.${plan}.maxActivities`, Number(e.target.value))}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </Field>
                   <Field label="Max Milestones" hint="-1 = unlimited">
@@ -228,7 +228,7 @@ export default function AdminSettingsPage() {
                       min="-1"
                       value={settings.plans?.[plan]?.maxMilestones ?? -1}
                       onChange={e => update(`plans.${plan}.maxMilestones`, Number(e.target.value))}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </Field>
                 </div>
@@ -245,7 +245,7 @@ export default function AdminSettingsPage() {
               onChange={v => update('features.registrationEnabled', v)}
               label="User Registration Enabled"
             />
-            <hr className="border-gray-800" />
+            <hr className="border-gray-200" />
             <Toggle
               checked={settings.features?.maintenanceMode ?? false}
               onChange={v => update('features.maintenanceMode', v)}
@@ -258,7 +258,7 @@ export default function AdminSettingsPage() {
                   onChange={e => update('features.maintenanceMessage', e.target.value)}
                   rows={2}
                   placeholder="We're performing scheduled maintenance. Back soon!"
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-white placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </Field>
             )}
@@ -281,14 +281,14 @@ export default function AdminSettingsPage() {
                     onChange={e => update('announcement.message', e.target.value)}
                     rows={2}
                     placeholder="Exciting news! TrakIO Pro is now available."
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-white placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </Field>
                 <Field label="Banner Type">
                   <select
                     value={settings.announcement?.type || 'info'}
                     onChange={e => update('announcement.type', e.target.value)}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     <option value="info">ℹ️ Info (blue)</option>
                     <option value="warning">⚠️ Warning (yellow)</option>

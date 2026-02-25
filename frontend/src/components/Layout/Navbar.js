@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import Logo from '@/components/Logo';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -32,9 +33,7 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex flex-1">
             <div className="flex-shrink-0 flex items-center">
-              <Link href="/dashboard" className="text-xl sm:text-2xl font-bold text-blue-600 flex items-center gap-1">
-                <span>⚡</span> <span>TrakIO</span>
-              </Link>
+              <Logo href="/dashboard" size="md" />
             </div>
             {/* Desktop Navigation */}
             <div className="hidden md:ml-6 md:flex md:space-x-8">

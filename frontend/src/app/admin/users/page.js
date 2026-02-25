@@ -6,7 +6,7 @@ import adminApi from '@/lib/adminApi';
 import toast from 'react-hot-toast';
 
 const PLAN_BADGE = {
-  free: 'bg-gray-800 text-gray-300',
+  free: 'bg-gray-100 text-gray-300',
   pro: 'bg-indigo-900/60 text-indigo-300',
   enterprise: 'bg-purple-900/60 text-purple-300',
 };
@@ -48,9 +48,9 @@ function EditUserModal({ user, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-      <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+      <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-md p-6 shadow-2xl">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-white font-bold text-lg">Edit User</h2>
+          <h2 className="text-gray-900 font-bold text-lg">Edit User</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-white text-xl">✕</button>
         </div>
 
@@ -65,7 +65,7 @@ function EditUserModal({ user, onClose, onSave }) {
                 type={f.type}
                 value={form[f.key]}
                 onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
           ))}
@@ -76,7 +76,7 @@ function EditUserModal({ user, onClose, onSave }) {
               <select
                 value={form.status}
                 onChange={e => setForm(p => ({ ...p, status: e.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="active">Active</option>
                 <option value="suspended">Suspended</option>
@@ -87,7 +87,7 @@ function EditUserModal({ user, onClose, onSave }) {
               <select
                 value={form.plan}
                 onChange={e => setForm(p => ({ ...p, plan: e.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="free">Free</option>
                 <option value="pro">Pro</option>
@@ -101,7 +101,7 @@ function EditUserModal({ user, onClose, onSave }) {
             <select
               value={form.subscriptionStatus}
               onChange={e => setForm(p => ({ ...p, subscriptionStatus: e.target.value }))}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
@@ -114,14 +114,14 @@ function EditUserModal({ user, onClose, onSave }) {
         <div className="flex gap-3 mt-6">
           <button
             onClick={onClose}
-            className="flex-1 py-2 rounded-lg border border-gray-700 text-gray-400 hover:text-white text-sm transition-colors"
+            className="flex-1 py-2 rounded-lg border border-gray-700 text-gray-600 hover:text-gray-900 text-sm transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex-1 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold disabled:opacity-50 transition-colors"
+            className="flex-1 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-gray-900 text-sm font-semibold disabled:opacity-50 transition-colors"
           >
             {saving ? 'Saving…' : 'Save Changes'}
           </button>
@@ -189,7 +189,7 @@ export default function AdminUsersPage() {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-extrabold text-white">Users</h2>
+            <h2 className="text-2xl font-extrabold text-gray-900">Users</h2>
             <p className="text-gray-500 text-sm mt-1">{pagination.total} total registered users</p>
           </div>
         </div>
@@ -201,12 +201,12 @@ export default function AdminUsersPage() {
             placeholder="Search by name or email…"
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(1); }}
-            className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="flex-1 bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-white placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
           <select
             value={planFilter}
             onChange={e => { setPlanFilter(e.target.value); setPage(1); }}
-            className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <option value="">All Plans</option>
             <option value="free">Free</option>
@@ -216,7 +216,7 @@ export default function AdminUsersPage() {
           <select
             value={statusFilter}
             onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
-            className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <option value="">All Statuses</option>
             <option value="active">Active</option>
@@ -225,7 +225,7 @@ export default function AdminUsersPage() {
         </div>
 
         {/* Table */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-40">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
@@ -238,22 +238,22 @@ export default function AdminUsersPage() {
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-800">
+                    <tr className="border-b border-gray-100">
                       {['User', 'Joined', 'Plan', 'Sub Status', 'Account', 'Activities', 'Actions'].map(h => (
                         <th key={h} className="text-left text-gray-500 font-medium px-4 py-3 whitespace-nowrap">{h}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-800">
+                  <tbody className="divide-y divide-gray-100">
                     {users.map(u => (
-                      <tr key={u._id} className="hover:bg-gray-800/50 transition-colors">
+                      <tr key={u._id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-indigo-800 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                               {u.name?.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                              <p className="text-white font-medium">{u.name}</p>
+                              <p className="text-gray-900 font-medium">{u.name}</p>
                               <p className="text-gray-500 text-xs">{u.email}</p>
                             </div>
                           </div>
@@ -298,7 +298,7 @@ export default function AdminUsersPage() {
               </div>
 
               {/* Mobile cards */}
-              <div className="md:hidden divide-y divide-gray-800">
+              <div className="md:hidden divide-y divide-gray-100">
                 {users.map(u => (
                   <div key={u._id} className="p-4 space-y-2">
                     <div className="flex items-center justify-between">
@@ -307,7 +307,7 @@ export default function AdminUsersPage() {
                           {u.name?.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <p className="text-white font-medium text-sm">{u.name}</p>
+                          <p className="text-gray-900 font-medium text-sm">{u.name}</p>
                           <p className="text-gray-500 text-xs">{u.email}</p>
                         </div>
                       </div>
@@ -343,14 +343,14 @@ export default function AdminUsersPage() {
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-3 py-1.5 text-sm bg-gray-800 hover:bg-gray-700 text-white rounded disabled:opacity-30 transition-colors"
+                className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-700 text-white rounded disabled:opacity-30 transition-colors"
               >
                 ← Prev
               </button>
               <button
                 onClick={() => setPage(p => Math.min(pagination.pages, p + 1))}
                 disabled={page === pagination.pages}
-                className="px-3 py-1.5 text-sm bg-gray-800 hover:bg-gray-700 text-white rounded disabled:opacity-30 transition-colors"
+                className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-700 text-white rounded disabled:opacity-30 transition-colors"
               >
                 Next →
               </button>

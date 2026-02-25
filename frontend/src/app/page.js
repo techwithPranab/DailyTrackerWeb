@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import Footer from '@/components/Layout/Footer';
+import Logo from '@/components/Logo';
 
 export default function Home() {
   const router = useRouter();
@@ -102,20 +103,22 @@ export default function Home() {
       <nav className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">⚡</span>
-              <span className="text-xl font-extrabold text-gray-900 tracking-tight">TrakIO</span>
+            <Logo href="/" size="md" />
+            <div className="hidden sm:flex items-center gap-1 text-sm font-medium text-gray-600">
+              <Link href="/pricing" className="px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-gray-900 transition-colors">Pricing</Link>
+              <Link href="/faqs" className="px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-gray-900 transition-colors">FAQs</Link>
+              <Link href="/contact" className="px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-gray-900 transition-colors">Contact</Link>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Link
                 href="/login"
-                className="text-gray-700 hover:text-gray-900 px-4 py-2 rounded-lg text-sm font-medium"
+                className="text-gray-700 hover:text-gray-900 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium"
               >
                 Login
               </Link>
               <Link
                 href="/register"
-                className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm"
+                className="bg-blue-600 text-white hover:bg-blue-700 px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold shadow-sm"
               >
                 Get Started Free
               </Link>
