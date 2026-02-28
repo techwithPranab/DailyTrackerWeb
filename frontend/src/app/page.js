@@ -53,28 +53,6 @@ const pricingPlans = [
     ],
     missing: [],
   },
-  {
-    key: 'enterprise',
-    icon: '🏢',
-    name: 'Enterprise',
-    price: '₹999',
-    period: 'per month',
-    desc: 'For teams and organisations at scale.',
-    popular: false,
-    cta: 'Contact Us',
-    href: 'mailto:support@trakio.in',
-    accentBorder: 'border-indigo-300',
-    accentBtn: 'bg-indigo-600 text-white hover:bg-indigo-700',
-    features: [
-      'Everything in Pro',
-      'Multi-user / team workspace',
-      'Admin panel & user management',
-      'Custom branding',
-      'Dedicated account manager',
-      'SLA-backed uptime guarantee',
-    ],
-    missing: [],
-  },
 ];
 
 const homeFaqs = [
@@ -419,7 +397,7 @@ export default function Home() {
           </div>
 
           {/* Plan cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start max-w-3xl mx-auto mb-16">
             {pricingPlans.map((plan) => (
               <div
                 key={plan.key}
@@ -480,25 +458,23 @@ export default function Home() {
                   <th className="text-left px-6 py-4 text-gray-500 font-medium w-2/5">Feature</th>
                   <th className="text-center px-4 py-4 text-gray-700 font-semibold">Free</th>
                   <th className="text-center px-4 py-4 text-blue-600 font-semibold">Pro ⭐</th>
-                  <th className="text-center px-4 py-4 text-indigo-700 font-semibold">Enterprise 🏢</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {[
-                  ['Activities',            '10',          'Unlimited',  'Unlimited'],
-                  ['Calendar view',         '✓',           '✓',          '✓'],
-                  ['Reminders',             '1/activity',  'Unlimited',  'Unlimited'],
-                  ['Recurring activities',  '✕',           '✓',          '✓'],
-                  ['Milestone tracking',    '✕',           '✓',          '✓'],
-                  ['Home Utility Tracker',  '✕',           '✓',          '✓'],
-                  ['Analytics & charts',    '✕',           '✓',          '✓'],
-                  ['Data export',           '✕',           'CSV',        'CSV + API'],
-                  ['Team workspace',        '✕',           '✕',          '✓'],
-                  ['Priority support',      '✕',           'Email',      'Dedicated'],
-                ].map(([feature, free, pro, enterprise]) => (
+                  ['Activities',            '10',          'Unlimited'],
+                  ['Calendar view',         '✓',           '✓'],
+                  ['Reminders',             '1/activity',  'Unlimited'],
+                  ['Recurring activities',  '✕',           '✓'],
+                  ['Milestone tracking',    '✕',           '✓'],
+                  ['Home Utility Tracker',  '✕',           '✓'],
+                  ['Analytics & charts',    '✕',           '✓'],
+                  ['Data export',           '✕',           'CSV'],
+                  ['Priority support',      '✕',           'Email'],
+                ].map(([feature, free, pro]) => (
                   <tr key={feature} className="hover:bg-gray-50/80 transition-colors">
                     <td className="px-6 py-3.5 text-gray-700 font-medium">{feature}</td>
-                    {[free, pro, enterprise].map((val, i) => (
+                    {[free, pro].map((val, i) => (
                       <td key={i} className="px-4 py-3.5 text-center">
                         {val === '✕' ? (
                           <span className="text-gray-300 font-bold">✕</span>

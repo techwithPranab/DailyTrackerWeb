@@ -57,28 +57,6 @@ const plans = [
     ],
     missing: [],
   },
-  {
-    key: 'enterprise',
-    name: 'Enterprise',
-    price: '₹999',
-    period: 'per month',
-    description: 'For teams and organisations that need scale and control.',
-    color: 'indigo',
-    badge: null,
-    cta: 'Contact Us',
-    href: 'mailto:support@trakio.in',
-    features: [
-      'Everything in Pro',
-      'Multi-user / team workspace',
-      'Admin panel & user management',
-      'Custom branding',
-      'SSO / SAML integration',
-      'Dedicated account manager',
-      'SLA-backed uptime guarantee',
-      'Custom data retention policies',
-    ],
-    missing: [],
-  },
 ];
 
 const faqItems = [
@@ -129,7 +107,7 @@ export default function PricingPage() {
     if (!user) return plan.cta;
     if (plan.key === currentPlan) return '✓ Current Plan';
     if (plan.key === 'free') return currentPlan !== 'free' ? 'Downgrade' : '✓ Current Plan';
-    return plan.key === 'enterprise' ? 'Upgrade to Enterprise' : 'Upgrade to Pro';
+    return 'Upgrade to Pro';
   };
 
   return (
@@ -185,7 +163,7 @@ export default function PricingPage() {
 
       {/* Plans */}
       <section className="max-w-6xl mx-auto px-4 pb-16 w-full">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start max-w-3xl mx-auto w-full">
           {plans.map((plan) => {
             const isPopular = plan.badge === 'Most Popular';
             const isCurrent = user && plan.key === currentPlan;
@@ -271,27 +249,23 @@ export default function PricingPage() {
                   <th className="text-left px-6 py-4 text-gray-500 font-medium w-1/2">Feature</th>
                   <th className="text-center px-4 py-4 text-gray-700 font-semibold">Free</th>
                   <th className="text-center px-4 py-4 text-blue-600 font-semibold">Pro</th>
-                  <th className="text-center px-4 py-4 text-indigo-700 font-semibold">Enterprise</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {[
-                  ['Activities', '10', 'Unlimited', 'Unlimited'],
-                  ['Calendar view', '✓', '✓', '✓'],
-                  ['Reminders', '1 / activity', 'Unlimited', 'Unlimited'],
-                  ['Recurring activities', '✕', '✓', '✓'],
-                  ['Milestone tracking', '✕', '✓', '✓'],
-                  ['Analytics & charts', '✕', '✓', '✓'],
-                  ['Data export', '✕', 'CSV', 'CSV + API'],
-                  ['Team workspace', '✕', '✕', '✓'],
-                  ['Admin panel', '✕', '✕', '✓'],
-                  ['Priority support', '✕', 'Email', 'Dedicated'],
-                ].map(([feature, free, pro, enterprise]) => (
+                  ['Activities', '10', 'Unlimited'],
+                  ['Calendar view', '✓', '✓'],
+                  ['Reminders', '1 / activity', 'Unlimited'],
+                  ['Recurring activities', '✕', '✓'],
+                  ['Milestone tracking', '✕', '✓'],
+                  ['Analytics & charts', '✕', '✓'],
+                  ['Data export', '✕', 'CSV'],
+                  ['Priority support', '✕', 'Email'],
+                ].map(([feature, free, pro]) => (
                   <tr key={feature} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-3.5 text-gray-700 font-medium">{feature}</td>
                     <td className="px-4 py-3.5 text-center text-gray-500">{free === '✕' ? <span className="text-red-300">✕</span> : free}</td>
                     <td className="px-4 py-3.5 text-center text-gray-700">{pro === '✕' ? <span className="text-red-300">✕</span> : pro === '✓' ? <span className="text-green-600">✓</span> : pro}</td>
-                    <td className="px-4 py-3.5 text-center text-gray-700">{enterprise === '✕' ? <span className="text-red-300">✕</span> : enterprise === '✓' ? <span className="text-green-600">✓</span> : enterprise}</td>
                   </tr>
                 ))}
               </tbody>

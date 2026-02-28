@@ -1,6 +1,6 @@
 const Activity  = require('../models/Activity');
 const Reminder  = require('../models/Reminder');
-const { getPlanFeatures, isFeatureAllowed, getRequiredPlan } = require('../config/planFeatures');
+const { getPlanFeaturesFromDB, getRequiredPlan } = require('../config/planFeatures');
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -27,13 +27,13 @@ const featureBlocked = (res, feature, requiredPlan) =>
 
 // ─── checkPlanLimit ───────────────────────────────────────────────────────────
 /**
- * Enforces numeric resource limits (activities, milestones, reminders, utilities).
+ * Enforces numeric resource limits loaded live from DB (AppSettings).
  * Usage: router.post('/', protect, checkPlanLimit('activity'), createHandler)
  */
 const checkPlanLimit = (resource) => async (req, res, next) => {
   try {
     const plan     = getPlan(req);
-    const features = getPlanFeatures(plan);
+    const features = await getPlanFeaturesFromDB(plan);
     const userId   = req.user._id;
 
     switch (resource) {
@@ -88,24 +88,27 @@ const checkPlanLimit = (resource) => async (req, res, next) => {
 
 // ─── checkFeatureAccess ───────────────────────────────────────────────────────
 /**
- * Enforces boolean feature flags (recurringActivities, documentUpload, analytics, etc.)
- * Usage: router.post('/', protect, checkFeatureAccess('recurringActivities'), createHandler)
- *
+ * Enforces boolean feature flags loaded live from DB.
  * Special case — 'recurringActivities': only blocks if req.body.isRecurring === true
  */
-const checkFeatureAccess = (feature) => (req, res, next) => {
+const checkFeatureAccess = (feature) => async (req, res, next) => {
   try {
-    const plan = getPlan(req);
-
-    // Only gate recurring if the user is actually requesting a recurring activity
+    // Only gate recurring if the user is actually creating a recurring activity
     if (feature === 'recurringActivities' && !req.body.isRecurring) {
       return next();
     }
 
-    const allowed = isFeatureAllowed(plan, feature);
+    const plan     = getPlan(req);
+    const features = await getPlanFeaturesFromDB(plan);
+    const val      = features[feature];
+
+    const allowed =
+      typeof val === 'boolean' ? val :
+      typeof val === 'number'  ? (val === -1 || val > 0) :
+      true;
+
     if (!allowed) {
-      const requiredPlan = getRequiredPlan(feature);
-      return featureBlocked(res, feature, requiredPlan);
+      return featureBlocked(res, feature, getRequiredPlan(feature));
     }
 
     next();

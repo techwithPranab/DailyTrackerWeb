@@ -14,7 +14,6 @@ export const PLAN_FEATURES = {
     documentUpload:       false,
     analytics:            false,
     dataExport:           false,
-    teamWorkspace:        false,
     prioritySupport:      false,
   },
   pro: {
@@ -27,25 +26,11 @@ export const PLAN_FEATURES = {
     documentUpload:       true,
     analytics:            true,
     dataExport:           true,
-    teamWorkspace:        false,
-    prioritySupport:      true,
-  },
-  enterprise: {
-    activities:           -1,
-    milestones:           -1,
-    reminders:            -1,
-    utilities:            -1,
-    recurringActivities:  true,
-    subActivities:        true,
-    documentUpload:       true,
-    analytics:            true,
-    dataExport:           true,
-    teamWorkspace:        true,
     prioritySupport:      true,
   },
 };
 
-export const PLAN_RANK = { free: 0, pro: 1, enterprise: 2 };
+export const PLAN_RANK = { free: 0, pro: 1 };
 
 /** Returns feature config for the given plan (defaults to free). */
 export const getPlanFeatures = (plan) =>
@@ -71,11 +56,11 @@ export const isFeatureAllowed = (plan, feature) => {
  * e.g. getRequiredPlan('documentUpload') → 'pro'
  */
 export const getRequiredPlan = (feature) => {
-  const order = ['free', 'pro', 'enterprise'];
+  const order = ['free', 'pro'];
   for (const plan of order) {
     if (isFeatureAllowed(plan, feature)) return plan;
   }
-  return 'enterprise';
+  return 'pro';
 };
 
 /**

@@ -24,7 +24,6 @@ const getStats = async (req, res) => {
       suspendedUsers,
       freePlan,
       proPlan,
-      enterprisePlan,
       totalActivities,
       totalMilestones,
       totalReminders,
@@ -35,7 +34,6 @@ const getStats = async (req, res) => {
       User.countDocuments({ role: 'user', status: 'suspended' }),
       User.countDocuments({ role: 'user', 'subscription.plan': 'free' }),
       User.countDocuments({ role: 'user', 'subscription.plan': 'pro' }),
-      User.countDocuments({ role: 'user', 'subscription.plan': 'enterprise' }),
       Activity.countDocuments(),
       Milestone.countDocuments(),
       Reminder.countDocuments(),
@@ -51,7 +49,7 @@ const getStats = async (req, res) => {
       success: true,
       data: {
         users: { total: totalUsers, active: activeUsers, suspended: suspendedUsers, newThisMonth: newUsersThisMonth },
-        subscriptions: { free: freePlan, pro: proPlan, enterprise: enterprisePlan },
+        subscriptions: { free: freePlan, pro: proPlan },
         content: { activities: totalActivities, milestones: totalMilestones, reminders: totalReminders }
       }
     });
@@ -217,6 +215,37 @@ const updateSettings = async (req, res) => {
   }
 };
 
+// ─── Plan Feature Config ──────────────────────────────────────────────────────
+// @route GET  /api/admin/plan-features
+const getPlanFeatureConfig = async (req, res) => {
+  try {
+    const settings = await getOrCreateSettings();
+    res.json({ success: true, data: settings.plans });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @route PUT  /api/admin/plan-features
+const updatePlanFeatureConfig = async (req, res) => {
+  try {
+    const { free, pro } = req.body;
+    const settings = await getOrCreateSettings();
+
+    if (free) {
+      settings.plans.free = { ...settings.plans.free?.toObject?.() ?? {}, ...free };
+    }
+    if (pro) {
+      settings.plans.pro = { ...settings.plans.pro?.toObject?.() ?? {}, ...pro };
+    }
+    settings.markModified('plans');
+    await settings.save();
+    res.json({ success: true, data: settings.plans });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // ─── Admin Login ──────────────────────────────────────────────────────────────
 // @route POST /api/admin/login
 const adminLogin = async (req, res) => {
@@ -284,6 +313,8 @@ module.exports = {
   deleteUser,
   getSettings,
   updateSettings,
+  getPlanFeatureConfig,
+  updatePlanFeatureConfig,
   adminLogin,
   getActivityFeed,
   getSubscriptions,

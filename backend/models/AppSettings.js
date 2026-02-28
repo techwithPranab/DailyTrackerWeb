@@ -1,61 +1,95 @@
 const mongoose = require('mongoose');
 
+// ── Per-plan feature sub-schema ───────────────────────────────────────────────
+const planSchema = new mongoose.Schema({
+  // Display
+  name:  { type: String },
+  price: { type: Number, default: 0 },
+
+  // Numeric limits  (-1 = unlimited, 0 = blocked/not available)
+  maxActivities:  { type: Number, default: -1 },
+  maxMilestones:  { type: Number, default: -1 },
+  maxReminders:   { type: Number, default: -1 },   // per activity
+  maxUtilities:   { type: Number, default: -1 },
+
+  // Boolean feature flags
+  recurringActivities: { type: Boolean, default: true },
+  subActivities:       { type: Boolean, default: true },
+  documentUpload:      { type: Boolean, default: true },
+  analytics:           { type: Boolean, default: true },
+  dataExport:          { type: Boolean, default: true },
+  prioritySupport:     { type: Boolean, default: false },
+}, { _id: false });
+
 // Singleton settings document (always _id = 'global')
 const appSettingsSchema = new mongoose.Schema({
   _id: { type: String, default: 'global' },
 
   // Branding
-  appName: { type: String, default: 'TrakIO' },
+  appName:    { type: String, default: 'TrakIO' },
   appTagline: { type: String, default: 'Track Everything. Achieve Anything.' },
   appLogoUrl: { type: String, default: '' },
 
   // Contact details
-  supportEmail: { type: String, default: 'support@trakio.in' },
-  privacyEmail: { type: String, default: 'privacy@trakio.in' },
-  websiteUrl: { type: String, default: 'https://trakio.in' },
+  supportEmail:  { type: String, default: 'support@trakio.in' },
+  privacyEmail:  { type: String, default: 'privacy@trakio.in' },
+  websiteUrl:    { type: String, default: 'https://trakio.in' },
   twitterHandle: { type: String, default: '@trakio_in' },
 
-  // Subscription plans config
+  // ── Subscription plan configs (free + pro only) ───────────────────────────
   plans: {
     free: {
-      name: { type: String, default: 'Free' },
-      maxActivities: { type: Number, default: 20 },
-      maxMilestones: { type: Number, default: 5 },
-      maxReminders: { type: Number, default: 5 },
-      price: { type: Number, default: 0 }
+      type: planSchema,
+      default: () => ({
+        name:                'Free',
+        price:               0,
+        maxActivities:       10,
+        maxMilestones:       0,
+        maxReminders:        1,
+        maxUtilities:        2,
+        recurringActivities: false,
+        subActivities:       false,
+        documentUpload:      false,
+        analytics:           false,
+        dataExport:          false,
+        prioritySupport:     false,
+      }),
     },
     pro: {
-      name: { type: String, default: 'Pro' },
-      maxActivities: { type: Number, default: 500 },
-      maxMilestones: { type: Number, default: 100 },
-      maxReminders: { type: Number, default: 100 },
-      price: { type: Number, default: 199 }
+      type: planSchema,
+      default: () => ({
+        name:                'Pro',
+        price:               199,
+        maxActivities:       -1,
+        maxMilestones:       -1,
+        maxReminders:        -1,
+        maxUtilities:        20,
+        recurringActivities: true,
+        subActivities:       true,
+        documentUpload:      true,
+        analytics:           true,
+        dataExport:          true,
+        prioritySupport:     true,
+      }),
     },
-    enterprise: {
-      name: { type: String, default: 'Enterprise' },
-      maxActivities: { type: Number, default: -1 },
-      maxMilestones: { type: Number, default: -1 },
-      maxReminders: { type: Number, default: -1 },
-      price: { type: Number, default: 999 }
-    }
   },
 
-  // Feature flags
+  // App-level feature flags
   features: {
     registrationEnabled: { type: Boolean, default: true },
-    maintenanceMode: { type: Boolean, default: false },
-    maintenanceMessage: { type: String, default: '' }
+    maintenanceMode:     { type: Boolean, default: false },
+    maintenanceMessage:  { type: String,  default: '' },
   },
 
   // Announcement banner
   announcement: {
     enabled: { type: Boolean, default: false },
-    message: { type: String, default: '' },
-    type: { type: String, enum: ['info', 'warning', 'success'], default: 'info' }
-  }
+    message:  { type: String,  default: '' },
+    type:     { type: String,  enum: ['info', 'warning', 'success'], default: 'info' },
+  },
 }, {
   timestamps: true,
-  _id: false
+  _id: false,
 });
 
 module.exports = mongoose.model('AppSettings', appSettingsSchema);

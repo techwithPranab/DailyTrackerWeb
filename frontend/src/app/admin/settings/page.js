@@ -92,7 +92,6 @@ export default function AdminSettingsPage() {
         privacyEmail: settings.privacyEmail,
         websiteUrl: settings.websiteUrl,
         twitterHandle: settings.twitterHandle,
-        plans: settings.plans,
         features: settings.features,
         announcement: settings.announcement,
       });
@@ -190,11 +189,27 @@ export default function AdminSettingsPage() {
         {/* ── Plans ────────────────────────────────────── */}
         {activeTab === 'plans' && (
           <div className="space-y-4">
-            {['free', 'pro', 'enterprise'].map(plan => (
+            <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-5 flex items-start gap-4">
+              <span className="text-2xl mt-0.5">🗂️</span>
+              <div>
+                <p className="font-semibold text-indigo-900 text-sm">Plan limits & feature flags have moved</p>
+                <p className="text-indigo-700 text-sm mt-1">
+                  Configure per-plan resource limits (activities, milestones, reminders, utilities) and feature flags
+                  (recurring activities, sub-activities, analytics, etc.) on the dedicated <strong>Plan Features</strong> page.
+                </p>
+                <a
+                  href="/admin/plan-features"
+                  className="inline-block mt-3 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-colors"
+                >
+                  Go to Plan Features →
+                </a>
+              </div>
+            </div>
+            {['free', 'pro'].map(plan => (
               <Section
                 key={plan}
-                title={`${plan === 'free' ? '🆓 Free' : plan === 'pro' ? '⭐ Pro' : '🏢 Enterprise'} Plan`}
-                desc={`Configure limits for the ${plan} tier`}
+                title={`${plan === 'free' ? '🆓 Free' : '⭐ Pro'} Plan — Pricing`}
+                desc={`Display name and price for the ${plan} tier (stored in App Settings)`}
               >
                 <div className="grid grid-cols-2 gap-4">
                   <Field label="Display Name">
@@ -210,24 +225,6 @@ export default function AdminSettingsPage() {
                       min="0"
                       value={settings.plans?.[plan]?.price ?? 0}
                       onChange={e => update(`plans.${plan}.price`, Number(e.target.value))}
-                      className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                  </Field>
-                  <Field label="Max Activities" hint="-1 = unlimited">
-                    <input
-                      type="number"
-                      min="-1"
-                      value={settings.plans?.[plan]?.maxActivities ?? -1}
-                      onChange={e => update(`plans.${plan}.maxActivities`, Number(e.target.value))}
-                      className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                  </Field>
-                  <Field label="Max Milestones" hint="-1 = unlimited">
-                    <input
-                      type="number"
-                      min="-1"
-                      value={settings.plans?.[plan]?.maxMilestones ?? -1}
-                      onChange={e => update(`plans.${plan}.maxMilestones`, Number(e.target.value))}
                       className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </Field>

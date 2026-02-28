@@ -9,6 +9,8 @@ const {
   deleteUser,
   getSettings,
   updateSettings,
+  getPlanFeatureConfig,
+  updatePlanFeatureConfig,
   adminLogin,
   getActivityFeed,
   getSubscriptions,
@@ -33,6 +35,10 @@ router.delete('/users/:id', deleteUser);
 
 router.get('/settings', getSettings);
 router.put('/settings', updateSettings);
+
+// Plan feature configuration
+router.get('/plan-features', getPlanFeatureConfig);
+router.put('/plan-features', updatePlanFeatureConfig);
 
 // Subscription & revenue routes
 router.get('/subscriptions',     getSubscriptions);
