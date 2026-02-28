@@ -7,54 +7,6 @@ import { useAuth } from '@/context/AuthContext';
 import Footer from '@/components/Layout/Footer';
 import Logo from '@/components/Logo';
 
-const pricingPlans = [
-  {
-    key: 'free',
-    icon: '🆓',
-    name: 'Free',
-    price: '₹0',
-    period: 'forever',
-    desc: 'Perfect for individuals getting started.',
-    popular: false,
-    cta: 'Get Started Free',
-    href: '/register',
-    accentBorder: 'border-gray-200',
-    accentBtn: 'bg-gray-100 text-gray-900 hover:bg-gray-200',
-    features: [
-      'Up to 10 activities',
-      'Basic calendar view',
-      '1 reminder per activity',
-      'Weekly summary',
-      'Mobile-friendly interface',
-    ],
-    missing: ['Recurring activities', 'Milestone tracking', 'Home Utility Tracker', 'Advanced analytics'],
-  },
-  {
-    key: 'pro',
-    icon: '⭐',
-    name: 'Pro',
-    price: '₹199',
-    period: 'per month',
-    desc: 'Full control for power users.',
-    popular: true,
-    cta: 'Start Free Trial',
-    href: '/register',
-    accentBorder: 'border-blue-500',
-    accentBtn: 'bg-blue-600 text-white hover:bg-blue-700',
-    features: [
-      'Unlimited activities',
-      'Monthly & weekly calendar',
-      'Unlimited reminders',
-      'Recurring activities (daily, weekly, monthly)',
-      'Milestone tracking',
-      'Home Utility Tracker',
-      'Advanced analytics & charts',
-      'Priority email support',
-    ],
-    missing: [],
-  },
-];
-
 const homeFaqs = [
   { q: 'Is TrakIO really free?', a: 'Yes — the Free plan is free forever. No credit card required to sign up.' },
   { q: 'Can I cancel my paid plan anytime?', a: "Absolutely. Cancel any time from your account settings. You keep access until the end of your billing period." },
@@ -175,7 +127,6 @@ export default function Home() {
 
             {/* Desktop nav links */}
             <div className="hidden sm:flex items-center gap-5 text-sm font-medium text-gray-500">
-              <a href="#pricing" className="hover:text-gray-900 transition-colors">Pricing</a>
               <a href="#faqs" className="hover:text-gray-900 transition-colors">FAQs</a>
             </div>
 
@@ -218,13 +169,6 @@ export default function Home() {
         {mobileMenuOpen && (
           <div className="sm:hidden border-t border-gray-100 bg-white/95 backdrop-blur-md">
             <div className="px-4 pt-3 pb-4 space-y-1">
-              <a
-                href="#pricing"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-              >
-                Pricing
-              </a>
               <a
                 href="#faqs"
                 onClick={() => setMobileMenuOpen(false)}
@@ -437,126 +381,6 @@ export default function Home() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* ── Pricing ─────────────────────────────────────── */}
-      <section id="pricing" aria-label="Pricing" className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Heading */}
-          <div className="text-center mb-14">
-            <span className="inline-block bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide mb-4">
-              Pricing
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900">
-              Simple, transparent pricing
-            </h2>
-            <p className="mt-4 text-lg text-gray-500 max-w-xl mx-auto">
-              Start free, upgrade when you need more. No hidden fees, no surprises.
-            </p>
-          </div>
-
-          {/* Plan cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start max-w-3xl mx-auto mb-16">
-            {pricingPlans.map((plan) => (
-              <div
-                key={plan.key}
-                className={`relative rounded-2xl border-2 p-8 flex flex-col ${plan.accentBorder} ${
-                  plan.popular ? 'shadow-2xl' : 'shadow-sm'
-                }`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="bg-blue-600 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow">
-                      Most Popular
-                    </span>
-                  </div>
-                )}
-
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-3xl">{plan.icon}</span>
-                    <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
-                  </div>
-                  <p className="text-sm text-gray-500 mb-4">{plan.desc}</p>
-                  <div className="flex items-end gap-1">
-                    <span className="text-4xl font-extrabold text-gray-900">{plan.price}</span>
-                    <span className="text-gray-400 text-sm mb-1">/{plan.period}</span>
-                  </div>
-                </div>
-
-                <Link
-                  href={plan.href}
-                  className={`w-full text-center py-3 rounded-xl font-semibold text-sm transition-colors mb-8 ${plan.accentBtn}`}
-                >
-                  {plan.cta}
-                </Link>
-
-                <ul className="space-y-3 flex-1">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm text-gray-700">
-                      <span className="text-green-500 mt-0.5 shrink-0">✓</span>
-                      {f}
-                    </li>
-                  ))}
-                  {plan.missing.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm text-gray-400">
-                      <span className="text-gray-300 mt-0.5 shrink-0">✕</span>
-                      <span className="line-through">{f}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-
-          {/* Feature comparison table */}
-          <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm mb-6">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50">
-                  <th className="text-left px-6 py-4 text-gray-500 font-medium w-2/5">Feature</th>
-                  <th className="text-center px-4 py-4 text-gray-700 font-semibold">Free</th>
-                  <th className="text-center px-4 py-4 text-blue-600 font-semibold">Pro ⭐</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {[
-                  ['Activities',            '10',          'Unlimited'],
-                  ['Calendar view',         '✓',           '✓'],
-                  ['Reminders',             '1/activity',  'Unlimited'],
-                  ['Recurring activities',  '✕',           '✓'],
-                  ['Milestone tracking',    '✕',           '✓'],
-                  ['Home Utility Tracker',  '✕',           '✓'],
-                  ['Analytics & charts',    '✕',           '✓'],
-                  ['Data export',           '✕',           'CSV'],
-                  ['Priority support',      '✕',           'Email'],
-                ].map(([feature, free, pro]) => (
-                  <tr key={feature} className="hover:bg-gray-50/80 transition-colors">
-                    <td className="px-6 py-3.5 text-gray-700 font-medium">{feature}</td>
-                    {[free, pro].map((val, i) => (
-                      <td key={i} className="px-4 py-3.5 text-center">
-                        {val === '✕' ? (
-                          <span className="text-gray-300 font-bold">✕</span>
-                        ) : val === '✓' ? (
-                          <span className="text-green-500 font-bold">✓</span>
-                        ) : (
-                          <span className="text-gray-600">{val}</span>
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <p className="text-center text-sm text-gray-400">
-            All plans include a free 14-day trial on paid features. &nbsp;
-            <Link href="/pricing" className="text-blue-600 hover:underline">
-              See full pricing details →
-            </Link>
-          </p>
         </div>
       </section>
 
