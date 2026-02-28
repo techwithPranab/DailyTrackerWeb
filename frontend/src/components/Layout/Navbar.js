@@ -17,6 +17,7 @@ export default function Navbar() {
     { href: '/calendar', label: 'Calendar', icon: '📅' },
     { href: '/milestones', label: 'Milestones', icon: '🎯' },
     { href: '/reminders', label: 'Reminders', icon: '⏰' },
+    { href: '/utilities', label: 'Utilities', icon: '🏠' },
   ];
 
   const toggleMobileMenu = () => {

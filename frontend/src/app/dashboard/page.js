@@ -17,8 +17,6 @@ const STATUS_COLORS = {
   'Completed':    'bg-green-100 text-green-800'
 };
 
-const STATUS_OPTIONS = ['Not Started', 'In Progress', 'Completed'];
-
 // ── Compact today-sub-activity card ──────────────────────────────────────────
 function TodaySubActivityCard({ sub, onUpdated }) {
   const [status,  setStatus]  = useState(sub.status);
@@ -70,15 +68,36 @@ function TodaySubActivityCard({ sub, onUpdated }) {
         </span>
       </div>
 
-      {/* Status change */}
-      <select
-        value={status}
-        disabled={saving}
-        onChange={e => changeStatus(e.target.value)}
-        className="w-full text-xs border border-gray-200 rounded px-2 py-1.5 bg-white text-gray-700 mb-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
-      >
-        {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-      </select>
+      {/* Status action buttons */}
+      <div className="flex gap-1.5 mb-2">
+        {status !== 'In Progress' && status !== 'Completed' && (
+          <button
+            onClick={() => changeStatus('In Progress')}
+            disabled={saving}
+            className="flex-1 text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200 rounded-md px-2 py-1.5 hover:bg-yellow-100 disabled:opacity-50 transition-colors"
+          >
+            ▶ Start
+          </button>
+        )}
+        {status !== 'Completed' && (
+          <button
+            onClick={() => changeStatus('Completed')}
+            disabled={saving}
+            className="flex-1 text-xs font-medium bg-green-50 text-green-700 border border-green-200 rounded-md px-2 py-1.5 hover:bg-green-100 disabled:opacity-50 transition-colors"
+          >
+            ✓ Done
+          </button>
+        )}
+        {status === 'Completed' && (
+          <button
+            onClick={() => changeStatus('Not Started')}
+            disabled={saving}
+            className="flex-1 text-xs font-medium bg-gray-50 text-gray-600 border border-gray-200 rounded-md px-2 py-1.5 hover:bg-gray-100 disabled:opacity-50 transition-colors"
+          >
+            ↩ Undo
+          </button>
+        )}
+      </div>
 
       {/* Notes */}
       {editing ? (
@@ -116,6 +135,7 @@ export default function DashboardPage() {
   const [todayActivities,    setTodayActivities]    = useState([]);
   const [todaySubActivities, setTodaySubActivities] = useState([]);
   const [upcomingReminders,  setUpcomingReminders]  = useState([]);
+  const [upcomingServices,   setUpcomingServices]   = useState([]);
   const [stats, setStats] = useState({ total: 0, completed: 0, inProgress: 0, notStarted: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -124,16 +144,18 @@ export default function DashboardPage() {
       setLoading(true);
       const today = format(new Date(), 'yyyy-MM-dd');
 
-      const [activitiesRes, remindersRes, subActivitiesRes] = await Promise.all([
+      const [activitiesRes, remindersRes, subActivitiesRes, servicesRes] = await Promise.all([
         api.get('/activities/today'),
         api.get('/reminders?upcoming=true'),
-        api.get(`/subactivities/date/${today}`)
+        api.get(`/subactivities/date/${today}`),
+        api.get('/utilities/services/upcoming').catch(() => ({ data: [] }))
       ]);
 
       const activities = activitiesRes.data.data;
       setTodayActivities(activities);
       setUpcomingReminders(remindersRes.data.data);
       setTodaySubActivities(subActivitiesRes.data.data);
+      setUpcomingServices(servicesRes.data?.services ?? servicesRes.data ?? []);
 
       // Stats from today's sub-activities (more accurate per-day view)
       const subs = subActivitiesRes.data.data;
@@ -285,6 +307,44 @@ export default function DashboardPage() {
             <div className="text-xs sm:text-sm opacity-90 mt-1">Set and achieve goals</div>
           </Link>
         </div>
+
+        {/* ── Upcoming Services ─────────────────────────────────────────── */}
+        {upcomingServices.length > 0 && (
+          <div className="mb-6 sm:mb-8">
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Upcoming Services ⚙️</h2>
+              <Link href="/utilities" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                All utilities →
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {upcomingServices.slice(0, 6).map((svc, idx) => {
+                const days = svc.daysUntilDue ?? 0;
+                const badgeColor = days <= 0   ? 'bg-red-100 text-red-700 border-red-200'
+                  : days <= 3  ? 'bg-orange-100 text-orange-700 border-orange-200'
+                  : days <= 7  ? 'bg-yellow-100 text-yellow-700 border-yellow-200'
+                  :              'bg-blue-50 text-blue-700 border-blue-200';
+                return (
+                  <Link key={idx} href={`/utilities/${svc.utilityId}`}
+                    className="bg-white rounded-lg shadow p-4 border-l-4 border-orange-400 hover:shadow-md transition-shadow block">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">{svc.utilityName}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{svc.serviceType}</p>
+                      </div>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full border shrink-0 ${badgeColor}`}>
+                        {days <= 0 ? 'Overdue' : days === 1 ? 'Tomorrow' : `${days}d`}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-2">
+                      📅 {format(new Date(svc.scheduledDate), 'MMM d, yyyy')}
+                    </p>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* ── Upcoming Reminders ────────────────────────────────────────────── */}
         <div className="mt-6 sm:mt-8">

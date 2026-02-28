@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const { errorHandler } = require('./middleware/error');
+const { startUtilityReminderCron } = require('./utils/utilityReminders');
 
 // Load env vars
 dotenv.config();
@@ -32,6 +33,7 @@ app.use('/api/milestones', require('./routes/milestones'));
 app.use('/api/reminders', require('./routes/reminders'));
 app.use('/api/progress', require('./routes/progress'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/utilities', require('./routes/utilities'));
 
 // Health check route
 app.get('/api/health', (req, res) => {
@@ -49,4 +51,6 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+  // Start daily reminder cron for home utilities
+  startUtilityReminderCron();
 });
