@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
 import ProtectedLayout from '@/components/Layout/ProtectedLayout';
+import PlanGate from '@/components/Subscription/PlanGate';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
@@ -94,6 +95,10 @@ export default function MilestonesPage() {
 
   return (
     <ProtectedLayout>
+      <PlanGate
+        feature="milestones"
+        fallback={undefined}
+      >
       <div className="px-4 py-6 sm:px-0">
         <div className="mb-6 flex justify-between items-center">
           <div>
@@ -254,6 +259,7 @@ export default function MilestonesPage() {
           </div>
         )}
       </div>
+      </PlanGate>
     </ProtectedLayout>
   );
 }

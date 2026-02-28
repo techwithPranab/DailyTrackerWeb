@@ -1,6 +1,7 @@
 const express = require('express');
 const router  = express.Router();
 const { protect } = require('../middleware/auth');
+const { getPlanFeatures } = require('../config/planFeatures');
 const {
   getPlans,
   createOrder,
@@ -23,6 +24,13 @@ router.get('/plans', getPlans);
 
 // Protected routes
 router.use(protect);
+
+// Returns current user's full feature set (used by frontend hook)
+router.get('/features', (req, res) => {
+  const plan     = req.user?.subscription?.plan ?? 'free';
+  const features = getPlanFeatures(plan);
+  res.json({ success: true, data: { plan, features } });
+});
 
 router.post('/create-order', createOrder);
 router.post('/verify',       verifyPayment);

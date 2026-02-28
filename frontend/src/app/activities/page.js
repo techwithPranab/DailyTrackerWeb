@@ -6,6 +6,10 @@ import { useState, useEffect } from 'react';
 import ProtectedLayout from '@/components/Layout/ProtectedLayout';
 import ActivityTable from '@/components/Activities/ActivityTable';
 import ActivityForm from '@/components/Activities/ActivityForm';
+import PlanUsageBar from '@/components/Subscription/PlanUsageBar';
+import UpgradeBanner from '@/components/Subscription/UpgradeBanner';
+import PlanModal from '@/components/Subscription/PlanModal';
+import usePlanFeatures from '@/hooks/usePlanFeatures';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 
@@ -15,12 +19,17 @@ export default function ActivitiesPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingActivity, setEditingActivity] = useState(null);
+  const [showPlanModal, setShowPlanModal] = useState(false);
   const [filters, setFilters] = useState({
     status: '',
     priority: '',
     category: ''
   });
 
+  const { plan, features, isLimitReached, usagePercent } = usePlanFeatures();
+  const activityLimit   = features.activities;  // -1 = unlimited
+  const atLimit         = isLimitReached('activities', activities.length);
+  const pct             = usagePercent('activities', activities.length);
   useEffect(() => {
     fetchActivities();
   }, []);
@@ -77,6 +86,10 @@ export default function ActivitiesPage() {
   };
 
   const handleNewActivity = () => {
+    if (atLimit) {
+      setShowPlanModal(true);
+      return;
+    }
     setEditingActivity(null);
     setShowForm(true);
   };
@@ -106,11 +119,42 @@ export default function ActivitiesPage() {
           </div>
           <button
             onClick={handleNewActivity}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 w-full sm:w-auto text-sm sm:text-base"
+            disabled={atLimit}
+            title={atLimit ? `You've reached the ${activityLimit}-activity limit on the Free plan` : undefined}
+            className={`px-4 py-2 rounded-md w-full sm:w-auto text-sm sm:text-base transition-colors ${
+              atLimit
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                : 'bg-blue-600 text-white hover:bg-blue-700'
+            }`}
           >
             {showForm ? 'Cancel' : '+ New Activity'}
           </button>
         </div>
+
+        {/* Plan usage bar — only meaningful on Free (limit !== -1) */}
+        {activityLimit !== -1 && (
+          <div className="mb-4 bg-white rounded-lg shadow-sm border border-gray-100 px-4 py-3">
+            <PlanUsageBar
+              label="Activities"
+              current={activities.length}
+              max={activityLimit}
+              onUpgrade={() => setShowPlanModal(true)}
+            />
+          </div>
+        )}
+
+        {/* Upgrade banner when ≥ 80 % full */}
+        {activityLimit !== -1 && (
+          <UpgradeBanner
+            storageKey="activity_limit"
+            usagePercent={pct}
+            threshold={80}
+            title="Almost at your activity limit"
+            message={`You've used ${activities.length} of ${activityLimit} activities. Upgrade to Pro for unlimited activities.`}
+            onUpgrade={() => setShowPlanModal(true)}
+            className="mb-4"
+          />
+        )}
 
         {showForm && (
           <div className="mb-6 bg-white rounded-lg shadow-md p-4 sm:p-6">
@@ -184,6 +228,15 @@ export default function ActivitiesPage() {
           onEdit={handleEdit}
         />
       </div>
+
+      {/* Plan upgrade modal */}
+      {showPlanModal && (
+        <PlanModal
+          currentPlan={plan}
+          onClose={() => setShowPlanModal(false)}
+          onSuccess={() => setShowPlanModal(false)}
+        />
+      )}
     </ProtectedLayout>
   );
 }

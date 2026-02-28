@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
+const { checkPlanLimit } = require('../middleware/planLimit');
 const {
   createMilestone,
   getMilestones,
@@ -10,7 +11,7 @@ const {
 } = require('../controllers/milestoneController');
 
 router.route('/')
-  .post(protect, createMilestone)
+  .post(protect, checkPlanLimit('milestone'), createMilestone)
   .get(protect, getMilestones);
 
 router.route('/:id')

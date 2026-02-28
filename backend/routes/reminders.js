@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
+const { checkPlanLimit } = require('../middleware/planLimit');
 const {
   createReminder,
   getReminders,
@@ -10,7 +11,7 @@ const {
 } = require('../controllers/reminderController');
 
 router.route('/')
-  .post(protect, createReminder)
+  .post(protect, checkPlanLimit('reminder'), createReminder)
   .get(protect, getReminders);
 
 router.route('/:id')

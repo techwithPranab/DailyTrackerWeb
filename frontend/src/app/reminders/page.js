@@ -4,6 +4,8 @@ export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
 import ProtectedLayout from '@/components/Layout/ProtectedLayout';
+import PlanGate from '@/components/Subscription/PlanGate';
+import usePlanFeatures from '@/hooks/usePlanFeatures';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
@@ -19,6 +21,16 @@ export default function RemindersPage() {
     message: '',
     type: 'In-App'
   });
+
+  const { plan, features } = usePlanFeatures();
+  const reminderLimit = features.reminders;  // 1 for free, -1 for pro+
+
+  // Count how many reminders already exist for the selected activity
+  const remindersForSelected = reminders.filter(
+    r => r.activityId?._id === formData.activityId || r.activityId === formData.activityId
+  ).length;
+  const selectedAtLimit =
+    reminderLimit !== -1 && formData.activityId && remindersForSelected >= reminderLimit;
 
   useEffect(() => {
     fetchData();
@@ -104,7 +116,14 @@ export default function RemindersPage() {
 
         {showForm && (
           <div className="mb-6 bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-900">Create New Reminder</h2>
+            <div className="flex items-start justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">Create New Reminder</h2>
+              {reminderLimit !== -1 && (
+                <span className="text-xs bg-amber-50 border border-amber-200 text-amber-700 rounded-full px-2.5 py-1 font-medium">
+                  Free plan: {reminderLimit} reminder per activity
+                </span>
+              )}
+            </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Select Activity*</label>
@@ -121,6 +140,14 @@ export default function RemindersPage() {
                     </option>
                   ))}
                 </select>
+
+                {/* Inline per-activity limit warning */}
+                {selectedAtLimit && (
+                  <p className="mt-1.5 text-xs text-rose-600 flex items-center gap-1">
+                    ⚠️ This activity already has {reminderLimit} reminder (Free plan limit).
+                    <a href="/subscription" className="underline hover:text-rose-800">Upgrade</a> for unlimited.
+                  </p>
+                )}
               </div>
 
               <div>
@@ -169,7 +196,8 @@ export default function RemindersPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                  disabled={!!selectedAtLimit}
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Create Reminder
                 </button>

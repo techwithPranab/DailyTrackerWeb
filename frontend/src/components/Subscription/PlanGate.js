@@ -2,20 +2,23 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { getRequiredPlan, PLAN_RANK } from '@/lib/planFeatures';
 import PlanModal from './PlanModal';
-
-const PLAN_RANK = { free: 0, pro: 1, enterprise: 2 };
 
 /**
  * PlanGate — wrap premium features to show an upgrade prompt for users on lower plans.
  *
  * Props:
- *   requiredPlan  — 'pro' | 'enterprise'
+ *   requiredPlan  — 'pro' | 'enterprise'  (explicit plan requirement)
+ *   feature       — feature key from planFeatures config; auto-resolves requiredPlan
+ *                   when provided. Takes precedence over requiredPlan.
  *   children      — content to render when the user has access
  *   fallback      — optional custom node to show instead of the default prompt
  *   inline        — if true, renders a compact inline banner instead of full overlay
  */
-export default function PlanGate({ requiredPlan = 'pro', children, fallback, inline = false }) {
+export default function PlanGate({ requiredPlan: requiredPlanProp, feature, children, fallback, inline = false }) {
+  // Derive requiredPlan: feature prop wins over explicit requiredPlan
+  const requiredPlan = feature ? getRequiredPlan(feature) : (requiredPlanProp ?? 'pro');
   const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
 

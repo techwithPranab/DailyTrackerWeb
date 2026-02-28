@@ -1,6 +1,7 @@
 const express = require('express');
 const router  = express.Router();
 const { protect } = require('../middleware/auth');
+const { checkPlanLimit, checkFeatureAccess } = require('../middleware/planLimit');
 const upload  = require('../middleware/upload');
 const {
   createUtility,
@@ -22,7 +23,7 @@ router.get('/services/upcoming', protect, getUpcomingServices);
 // Utility CRUD
 router.route('/')
   .get(protect, getUtilities)
-  .post(protect, createUtility);
+  .post(protect, checkPlanLimit('utility'), createUtility);
 
 router.route('/:id')
   .get(protect, getUtility)
@@ -34,8 +35,8 @@ router.post('/:id/services',              protect, addServiceEntry);
 router.put('/:id/services/:sid',          protect, updateServiceEntry);
 router.delete('/:id/services/:sid',       protect, deleteServiceEntry);
 
-// Documents (Cloudinary upload)
-router.post('/:id/documents',             protect, upload.single('file'), uploadDocument);
+// Documents (Cloudinary upload) — Pro+ only
+router.post('/:id/documents',             protect, checkFeatureAccess('documentUpload'), upload.single('file'), uploadDocument);
 router.delete('/:id/documents/:did',      protect, deleteDocument);
 
 module.exports = router;

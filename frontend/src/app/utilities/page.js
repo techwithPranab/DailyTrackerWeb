@@ -6,6 +6,10 @@ import { useState, useEffect, useCallback } from 'react';
 import ProtectedLayout from '@/components/Layout/ProtectedLayout';
 import UtilityCard from '@/components/HomeUtility/UtilityCard';
 import UtilityForm from '@/components/HomeUtility/UtilityForm';
+import PlanUsageBar from '@/components/Subscription/PlanUsageBar';
+import UpgradeBanner from '@/components/Subscription/UpgradeBanner';
+import PlanModal from '@/components/Subscription/PlanModal';
+import usePlanFeatures from '@/hooks/usePlanFeatures';
 import api from '@/lib/axios';
 
 const CATEGORIES = ['All', 'Appliance', 'Plumbing', 'Electrical', 'HVAC', 'Vehicle', 'Other'];
@@ -19,6 +23,15 @@ export default function UtilitiesPage() {
   const [error, setError]           = useState('');
   const [category, setCategory]     = useState('All');
   const [statusFilter, setStatus]   = useState('All');
+  const [showPlanModal, setShowPlanModal] = useState(false);
+
+  const { plan, features, isLimitReached, usagePercent } = usePlanFeatures();
+  const utilityLimit = features.utilities;   // 2 (free) | 20 (pro) | -1 (enterprise)
+
+  // Unfiltered count — use a separate state to track total regardless of filters
+  const [totalCount, setTotalCount] = useState(0);
+  const atLimit   = isLimitReached('utilities', totalCount);
+  const pct       = usagePercent('utilities', totalCount);
 
   const fetchUtilities = useCallback(async () => {
     setLoading(true);
@@ -27,7 +40,16 @@ export default function UtilitiesPage() {
       if (category   !== 'All') params.category = category;
       if (statusFilter !== 'All') params.status  = statusFilter;
       const { data } = await api.get('/utilities', { params });
-      setUtilities(data.data ?? data.utilities ?? []);
+      const list = data.data ?? data.utilities ?? [];
+      setUtilities(list);
+
+      // Also fetch total (unfiltered) for accurate plan usage
+      if (category === 'All' && statusFilter === 'All') {
+        setTotalCount(list.length);
+      } else {
+        const { data: allData } = await api.get('/utilities');
+        setTotalCount((allData.data ?? allData.utilities ?? []).length);
+      }
     } catch (err) {
       setError('Failed to load utilities.');
       console.error(err);
@@ -39,13 +61,18 @@ export default function UtilitiesPage() {
   useEffect(() => { fetchUtilities(); }, [fetchUtilities]);
 
   const handleCreate = async (payload) => {
+    if (atLimit) {
+      setShowPlanModal(true);
+      return;
+    }
     setSaving(true);
     try {
       await api.post('/utilities', payload);
       setShowForm(false);
       fetchUtilities();
     } catch (err) {
-      setError(err.response?.data?.message ?? 'Could not create utility.');
+      // Show plan limit errors inline
+      setError(err.planLimitMessage ?? err.response?.data?.message ?? 'Could not create utility.');
     } finally {
       setSaving(false);
     }
@@ -71,11 +98,47 @@ export default function UtilitiesPage() {
             <p className="text-sm text-gray-500 mt-0.5">Track appliances, warranties &amp; service schedules</p>
           </div>
           <button
-            onClick={() => { setShowForm(true); setError(''); }}
-            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+            onClick={() => {
+              if (atLimit) { setShowPlanModal(true); return; }
+              setShowForm(true);
+              setError('');
+            }}
+            disabled={atLimit}
+            title={atLimit ? `Utility limit reached on ${plan} plan` : undefined}
+            className={`inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg transition-colors ${
+              atLimit
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
+          >
             + Add Utility
           </button>
         </div>
+
+        {/* Plan usage bar */}
+        {utilityLimit !== -1 && (
+          <div className="mb-4 bg-white rounded-lg shadow-sm border border-gray-100 px-4 py-3">
+            <PlanUsageBar
+              label="Utilities"
+              current={totalCount}
+              max={utilityLimit}
+              onUpgrade={() => setShowPlanModal(true)}
+            />
+          </div>
+        )}
+
+        {/* Upgrade banner when ≥ 80 % */}
+        {utilityLimit !== -1 && (
+          <UpgradeBanner
+            storageKey="utility_limit"
+            usagePercent={pct}
+            threshold={80}
+            title="Almost at your utility limit"
+            message={`You've used ${totalCount} of ${utilityLimit} utilities. Upgrade for more.`}
+            onUpgrade={() => setShowPlanModal(true)}
+            className="mb-4"
+          />
+        )}
 
         {/* Filters */}
         <div className="flex flex-wrap gap-3 mb-6">
@@ -150,6 +213,15 @@ export default function UtilitiesPage() {
             />
           </div>
         </div>
+      )}
+
+      {/* Plan upgrade modal */}
+      {showPlanModal && (
+        <PlanModal
+          currentPlan={plan}
+          onClose={() => setShowPlanModal(false)}
+          onSuccess={() => setShowPlanModal(false)}
+        />
       )}
     </ProtectedLayout>
   );

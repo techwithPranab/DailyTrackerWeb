@@ -10,6 +10,9 @@ import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import ActivityCard from '@/components/Activities/ActivityCard';
 import Link from 'next/link';
+import PlanUsageBar from '@/components/Subscription/PlanUsageBar';
+import PlanModal from '@/components/Subscription/PlanModal';
+import usePlanFeatures from '@/hooks/usePlanFeatures';
 
 const STATUS_COLORS = {
   'Not Started': 'bg-gray-100 text-gray-700',
@@ -132,11 +135,15 @@ function TodaySubActivityCard({ sub, onUpdated }) {
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { plan, features, isLimitReached } = usePlanFeatures();
+  const [showPlanModal, setShowPlanModal] = useState(false);
   const [todayActivities,    setTodayActivities]    = useState([]);
   const [todaySubActivities, setTodaySubActivities] = useState([]);
   const [upcomingReminders,  setUpcomingReminders]  = useState([]);
   const [upcomingServices,   setUpcomingServices]   = useState([]);
   const [stats, setStats] = useState({ total: 0, completed: 0, inProgress: 0, notStarted: 0 });
+  const [allActivitiesCount, setAllActivitiesCount] = useState(0);
+  const [utilitiesCount, setUtilitiesCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const fetchDashboardData = useCallback(async () => {
@@ -144,11 +151,13 @@ export default function DashboardPage() {
       setLoading(true);
       const today = format(new Date(), 'yyyy-MM-dd');
 
-      const [activitiesRes, remindersRes, subActivitiesRes, servicesRes] = await Promise.all([
+      const [activitiesRes, remindersRes, subActivitiesRes, servicesRes, allActivitiesRes, utilitiesRes] = await Promise.all([
         api.get('/activities/today'),
         api.get('/reminders?upcoming=true'),
         api.get(`/subactivities/date/${today}`),
-        api.get('/utilities/services/upcoming').catch(() => ({ data: [] }))
+        api.get('/utilities/services/upcoming').catch(() => ({ data: [] })),
+        api.get('/activities').catch(() => ({ data: { data: [] } })),
+        api.get('/utilities').catch(() => ({ data: { data: [] } })),
       ]);
 
       const activities = activitiesRes.data.data;
@@ -156,6 +165,8 @@ export default function DashboardPage() {
       setUpcomingReminders(remindersRes.data.data);
       setTodaySubActivities(subActivitiesRes.data.data);
       setUpcomingServices(servicesRes.data?.data ?? []);
+      setAllActivitiesCount((allActivitiesRes.data?.data ?? []).length);
+      setUtilitiesCount((utilitiesRes.data?.data ?? []).length);
 
       // Stats from today's sub-activities (more accurate per-day view)
       const subs = subActivitiesRes.data.data;
@@ -201,6 +212,50 @@ export default function DashboardPage() {
             Here's what's on your plate today — {format(new Date(), 'EEEE, MMMM d')}.
           </p>
         </div>
+
+        {/* ── Plan Usage widget (visible only when there are limits) ──────── */}
+        {(features.activities !== -1 || features.utilities !== -1) && (
+          <div className="mb-6 bg-white rounded-xl shadow-sm border border-gray-100 px-5 py-4">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                Plan Usage
+              </h2>
+              <button
+                onClick={() => setShowPlanModal(true)}
+                className="text-xs font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+              >
+                Upgrade plan →
+              </button>
+            </div>
+            <div className="space-y-3">
+              {features.activities !== -1 && (
+                <PlanUsageBar
+                  label="Activities"
+                  current={allActivitiesCount}
+                  max={features.activities}
+                  onUpgrade={() => setShowPlanModal(true)}
+                />
+              )}
+              {features.utilities !== -1 && (
+                <PlanUsageBar
+                  label="Utilities"
+                  current={utilitiesCount}
+                  max={features.utilities}
+                  onUpgrade={() => setShowPlanModal(true)}
+                />
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Plan upgrade modal */}
+        {showPlanModal && (
+          <PlanModal
+            currentPlan={plan}
+            onClose={() => setShowPlanModal(false)}
+            onSuccess={() => setShowPlanModal(false)}
+          />
+        )}
 
         {/* ── Today's Sub-Activities (per-day tasks) ─────────────────────── */}
         <div className="mb-6 sm:mb-8">

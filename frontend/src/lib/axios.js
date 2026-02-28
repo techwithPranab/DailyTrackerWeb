@@ -31,6 +31,30 @@ api.interceptors.response.use(
       localStorage.removeItem('user');
       window.location.href = '/login';
     }
+
+    if (error.response?.status === 403) {
+      const { code, message, resource, limit, current, feature, requiredPlan } =
+        error.response.data ?? {};
+
+      if (code === 'PLAN_LIMIT_REACHED') {
+        // Attach a friendly human message callers can read from err.planLimitMessage
+        error.planLimitMessage =
+          message ?? `You've reached the ${resource} limit (${current}/${limit}). Upgrade your plan.`;
+        error.isPlanLimit      = true;
+        error.limitResource    = resource;
+        error.limitCurrent     = current;
+        error.limitMax         = limit;
+      }
+
+      if (code === 'FEATURE_NOT_ALLOWED') {
+        error.featureBlockedMessage =
+          message ?? `This feature requires the ${requiredPlan} plan.`;
+        error.isFeatureBlocked = true;
+        error.blockedFeature   = feature;
+        error.requiredPlan     = requiredPlan;
+      }
+    }
+
     return Promise.reject(error);
   }
 );
