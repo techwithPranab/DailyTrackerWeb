@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { getRequiredPlan, PLAN_RANK } from '@/lib/planFeatures';
 import PlanModal from './PlanModal';
@@ -9,7 +9,7 @@ import PlanModal from './PlanModal';
  * PlanGate — wrap premium features to show an upgrade prompt for users on lower plans.
  *
  * Props:
- *   requiredPlan  — 'pro' | 'enterprise'  (explicit plan requirement)
+ *   requiredPlan  — 'pro'  (explicit plan requirement)
  *   feature       — feature key from planFeatures config; auto-resolves requiredPlan
  *                   when provided. Takes precedence over requiredPlan.
  *   children      — content to render when the user has access
@@ -17,10 +17,19 @@ import PlanModal from './PlanModal';
  *   inline        — if true, renders a compact inline banner instead of full overlay
  */
 export default function PlanGate({ requiredPlan: requiredPlanProp, feature, children, fallback, inline = false }) {
-  // Derive requiredPlan: feature prop wins over explicit requiredPlan
-  const requiredPlan = feature ? getRequiredPlan(feature) : (requiredPlanProp ?? 'pro');
   const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
+
+  // Resolve requiredPlan: feature prop wins and requires async lookup
+  const [requiredPlan, setRequiredPlan] = useState(requiredPlanProp ?? 'pro');
+
+  useEffect(() => {
+    if (feature) {
+      getRequiredPlan(feature).then(setRequiredPlan);
+    } else {
+      setRequiredPlan(requiredPlanProp ?? 'pro');
+    }
+  }, [feature, requiredPlanProp]);
 
   const currentPlan = user?.subscription?.plan ?? 'free';
   const hasAccess   = PLAN_RANK[currentPlan] >= PLAN_RANK[requiredPlan];
@@ -29,7 +38,7 @@ export default function PlanGate({ requiredPlan: requiredPlanProp, feature, chil
 
   if (fallback) return fallback;
 
-  const planLabel = requiredPlan === 'enterprise' ? 'Enterprise 🏢' : 'Pro ⭐';
+  const planLabel = 'Pro ⭐';
 
   if (inline) {
     return (
