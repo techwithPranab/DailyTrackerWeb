@@ -10,22 +10,6 @@ import SubscriptionBadge from '@/components/Subscription/SubscriptionBadge';
 import { useAuth } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
 
-// ── Static fallback (used while fetching / on error) ─────────────────────────
-const FALLBACK_PLANS = {
-  free: {
-    name: 'Free', price: 0,
-    maxActivities: 10, maxMilestones: 0, maxReminders: 1, maxUtilities: 2,
-    recurringActivities: false, subActivities: false, documentUpload: false,
-    analytics: false, dataExport: false, prioritySupport: false,
-  },
-  pro: {
-    name: 'Pro', price: 199,
-    maxActivities: -1, maxMilestones: -1, maxReminders: -1, maxUtilities: 20,
-    recurringActivities: true, subActivities: true, documentUpload: true,
-    analytics: true, dataExport: true, prioritySupport: true,
-  },
-};
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const fmt = (n) =>
   n === -1 ? 'Unlimited' : n === 0 ? '—' : String(n);
@@ -129,6 +113,8 @@ export default function PricingPage() {
   const router   = useRouter();
 
   const [planData, setPlanData]   = useState(null);
+  const [error, setError]         = useState(false);
+  const [retryKey, setRetryKey]   = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
 
@@ -140,10 +126,10 @@ export default function PricingPage() {
       .then(r => r.json())
       .then(json => {
         if (json.success && json.data) setPlanData(json.data);
-        else setPlanData(FALLBACK_PLANS);
+        else setError(true);
       })
-      .catch(() => setPlanData(FALLBACK_PLANS));
-  }, []);
+      .catch(() => setError(true));
+  }, [retryKey]);
 
   const handleCta = (planKey) => {
     if (!user) { router.push('/register'); return; }
@@ -163,14 +149,43 @@ export default function PricingPage() {
     return 'Upgrade to Pro';
   };
 
-  const free = planData?.free ?? FALLBACK_PLANS.free;
-  const pro  = planData?.pro  ?? FALLBACK_PLANS.pro;
+  const free = planData?.free;
+  const pro  = planData?.pro;
   const tableRows = planData ? buildTableRows(free, pro) : null;
 
   const CARDS = [
     { key: 'free', plan: free, isPopular: false },
     { key: 'pro',  plan: pro,  isPopular: true  },
   ];
+
+  // ── Error state ───────────────────────────────────────────────────────────
+  if (error) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col">
+        <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center h-16">
+            <Logo href="/" size="md" />
+          </div>
+        </nav>
+        <div className="flex-1 flex items-center justify-center px-4 py-24">
+          <div className="text-center max-w-md">
+            <div className="text-5xl mb-4">⚠️</div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Pricing unavailable</h2>
+            <p className="text-gray-500 text-sm mb-6">
+              We couldn't load the plan details right now. Please check your connection or try again in a moment.
+            </p>
+            <button
+              onClick={() => { setError(false); setPlanData(null); setRetryKey(k => k + 1); }}
+              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg text-sm transition-colors"
+            >
+              Try again
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
