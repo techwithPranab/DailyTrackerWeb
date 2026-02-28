@@ -1,4 +1,6 @@
 const Activity = require('../models/Activity');
+const SubActivity = require('../models/SubActivity');
+const syncSubActivities = require('../utils/syncSubActivities');
 
 // ─── Helper: generate all scheduled dates for an activity ────────────────────
 const generateScheduledDates = (data) => {
@@ -65,6 +67,9 @@ const createActivity = async (req, res) => {
       userId: req.body.userId || req.user._id,
       scheduledDates
     });
+
+    // Generate a sub-activity for every scheduled date
+    await syncSubActivities(activity);
 
     res.status(201).json({
       success: true,
@@ -207,6 +212,9 @@ const updateActivity = async (req, res) => {
       { new: true, runValidators: true }
     );
 
+    // Re-sync sub-activities to match updated scheduled dates
+    await syncSubActivities(activity);
+
     res.json({
       success: true,
       data: activity
@@ -242,6 +250,9 @@ const deleteActivity = async (req, res) => {
     }
 
     await activity.deleteOne();
+
+    // Cascade-delete all sub-activities belonging to this parent
+    await SubActivity.deleteMany({ parentActivityId: activity._id });
 
     res.json({
       success: true,

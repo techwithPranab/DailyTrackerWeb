@@ -14,6 +14,7 @@ const {
   markActivityComplete,
   unmarkActivityComplete
 } = require('../controllers/weeklyActivityController');
+const { getSubActivities } = require('../controllers/subActivityController');
 
 router.route('/')
   .post(protect, createActivity)
@@ -27,7 +28,10 @@ router.route('/:id')
   .put(protect, updateActivity)
   .delete(protect, deleteActivity);
 
-router.post('/:id/complete', protect, markActivityComplete);
+router.post('/:id/complete',   protect, markActivityComplete);
 router.post('/:id/uncomplete', protect, unmarkActivityComplete);
+
+// Sub-activities for a parent activity
+router.get('/:id/subactivities', protect, getSubActivities);
 
 module.exports = router;

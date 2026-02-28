@@ -27,6 +27,7 @@ app.use(cors({
 // Routes
 app.use('/api/users', require('./routes/users'));
 app.use('/api/activities', require('./routes/activities'));
+app.use('/api/subactivities', require('./routes/subActivities'));
 app.use('/api/milestones', require('./routes/milestones'));
 app.use('/api/reminders', require('./routes/reminders'));
 app.use('/api/progress', require('./routes/progress'));
