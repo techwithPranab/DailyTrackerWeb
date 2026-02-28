@@ -92,6 +92,40 @@ function Cell({ v }) {
   return <span>{v}</span>;
 }
 
+// ── Billing toggle ────────────────────────────────────────────────────────────
+function BillingToggle({ billing, onChange }) {
+  return (
+    <div className="flex items-center justify-center mt-6">
+      <div className="flex items-center bg-gray-100 rounded-xl p-1 gap-1">
+        <button
+          onClick={() => onChange('monthly')}
+          className={`px-5 py-2 rounded-lg text-sm font-semibold transition-colors ${
+            billing === 'monthly'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Monthly
+        </button>
+        <button
+          onClick={() => onChange('yearly')}
+          className={`relative px-5 py-2 rounded-lg text-sm font-semibold transition-colors ${
+            billing === 'yearly'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Yearly
+          {/* discount badge — always show if a discount exists in planData */}
+          <span className="ml-1.5 inline-block bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full align-middle">
+            Save more
+          </span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 function PlanSkeleton() {
   return (
@@ -115,8 +149,10 @@ export default function PricingPage() {
   const [planData, setPlanData]   = useState(null);
   const [error, setError]         = useState(false);
   const [retryKey, setRetryKey]   = useState(0);
+  const [billing, setBilling]     = useState('monthly');   // 'monthly' | 'yearly'
   const [showModal, setShowModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [selectedPlan, setSelectedPlan]           = useState(null);
+  const [selectedBillingCycle, setSelectedBillingCycle] = useState('monthly');
 
   const currentPlan = user?.subscription?.plan ?? 'free';
 
@@ -139,19 +175,26 @@ export default function PricingPage() {
     }
     if (planKey === currentPlan) { toast('This is your current plan.'); return; }
     setSelectedPlan(planKey);
+    setSelectedBillingCycle(billing);
     setShowModal(true);
   };
 
   const getCtaLabel = (planKey) => {
-    if (!user) return planKey === 'free' ? 'Get Started Free' : 'Start Pro Free Trial';
+    if (!user) return planKey === 'free' ? 'Get Started Free' : billing === 'yearly' ? 'Start Yearly Plan' : 'Start Pro Free Trial';
     if (planKey === currentPlan) return '✓ Current Plan';
     if (planKey === 'free') return currentPlan !== 'free' ? 'Downgrade' : '✓ Current Plan';
-    return 'Upgrade to Pro';
+    return billing === 'yearly' ? 'Get Pro — Yearly' : 'Upgrade to Pro';
   };
 
   const free = planData?.free;
   const pro  = planData?.pro;
   const tableRows = planData ? buildTableRows(free, pro) : null;
+
+  // Yearly price helpers
+  const proYearlyPrice    = pro?.yearlyPrice ?? 0;
+  const proYearlyPerMonth = proYearlyPrice > 0 ? Math.round(proYearlyPrice / 12) : null;
+  const proDiscount       = pro?.yearlyDiscountPercent ?? 0;
+  const hasYearly         = proYearlyPrice > 0;
 
   const CARDS = [
     { key: 'free', plan: free, isPopular: false },
@@ -227,7 +270,7 @@ export default function PricingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="text-center pt-16 pb-10 px-4">
+      <section className="text-center pt-16 pb-4 px-4">
         <span className="inline-block bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full mb-4 tracking-wide uppercase">
           Pricing
         </span>
@@ -237,6 +280,10 @@ export default function PricingPage() {
         <p className="mt-4 text-lg text-gray-500 max-w-xl mx-auto">
           Start free, upgrade when you need more. No hidden fees, no surprises.
         </p>
+        {/* Billing toggle — only show when plan data loaded and yearly option exists */}
+        {planData && hasYearly && (
+          <BillingToggle billing={billing} onChange={setBilling} />
+        )}
       </section>
 
       {/* Plan cards */}
@@ -285,14 +332,42 @@ export default function PricingPage() {
                         ? 'Perfect for individuals getting started with activity tracking.'
                         : 'For power users who want full control over their productivity.'}
                     </p>
-                    <div className="flex items-end gap-1">
-                      <span className="text-4xl font-extrabold text-gray-900">
-                        {plan.price === 0 ? '₹0' : `₹${plan.price}`}
-                      </span>
-                      <span className="text-gray-400 text-sm mb-1">
-                        /{key === 'free' ? 'forever' : 'per month'}
-                      </span>
-                    </div>
+
+                    {key === 'free' ? (
+                      <div className="flex items-end gap-1">
+                        <span className="text-4xl font-extrabold text-gray-900">₹0</span>
+                        <span className="text-gray-400 text-sm mb-1">/forever</span>
+                      </div>
+                    ) : billing === 'yearly' && hasYearly ? (
+                      <>
+                        <div className="flex items-end gap-1">
+                          <span className="text-4xl font-extrabold text-gray-900">
+                            ₹{proYearlyPerMonth}
+                          </span>
+                          <span className="text-gray-400 text-sm mb-1">/mo</span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <span className="text-gray-400 text-xs line-through">
+                            ₹{pro.price}/mo
+                          </span>
+                          {proDiscount > 0 && (
+                            <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                              Save {proDiscount}%
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-gray-400 text-xs mt-1">
+                          Billed ₹{proYearlyPrice}/year
+                        </p>
+                      </>
+                    ) : (
+                      <div className="flex items-end gap-1">
+                        <span className="text-4xl font-extrabold text-gray-900">
+                          ₹{plan.price}
+                        </span>
+                        <span className="text-gray-400 text-sm mb-1">/per month</span>
+                      </div>
+                    )}
                   </div>
 
                   <button
@@ -366,7 +441,10 @@ export default function PricingPage() {
           </div>
           {planData && pro.price > 0 && (
             <p className="text-center text-sm text-gray-400 mt-4">
-              Pro plan at <span className="font-semibold text-gray-600">₹{pro.price}/month</span> — cancel anytime.
+              {billing === 'yearly' && hasYearly
+                ? <>Pro yearly at <span className="font-semibold text-gray-600">₹{proYearlyPrice}/year</span> — that's ₹{proYearlyPerMonth}/mo.</>
+                : <>Pro monthly at <span className="font-semibold text-gray-600">₹{pro.price}/month</span> — cancel anytime.</>
+              }
             </p>
           )}
         </div>
@@ -410,6 +488,7 @@ export default function PricingPage() {
       {showModal && (
         <PlanModal
           currentPlan={currentPlan}
+          billingCycle={selectedBillingCycle}
           onClose={() => { setShowModal(false); setSelectedPlan(null); }}
           onSuccess={() => {
             setShowModal(false);

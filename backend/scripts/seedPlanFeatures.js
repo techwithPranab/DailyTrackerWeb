@@ -33,6 +33,8 @@ const PLAN_DEFAULTS = {
   pro: {
     name:                'Pro',
     price:               199,
+    yearlyPrice:         1990,
+    yearlyDiscountPercent: 17,
     maxActivities:       -1,  // -1 = unlimited
     maxMilestones:       -1,
     maxReminders:        -1,

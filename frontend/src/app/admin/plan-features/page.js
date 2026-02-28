@@ -62,6 +62,7 @@ function ToggleField({ label, hint, checked, onChange }) {
 // ── Default shapes ────────────────────────────────────────────────────────────
 const DEFAULT_FREE = {
   name: 'Free', price: 0,
+  yearlyPrice: 0, yearlyDiscountPercent: 0,
   maxActivities: 10, maxMilestones: 0, maxReminders: 1, maxUtilities: 2,
   recurringActivities: false, subActivities: false, documentUpload: false,
   analytics: false, dataExport: false, prioritySupport: false,
@@ -69,6 +70,7 @@ const DEFAULT_FREE = {
 
 const DEFAULT_PRO = {
   name: 'Pro', price: 199,
+  yearlyPrice: 1990, yearlyDiscountPercent: 17,
   maxActivities: -1, maxMilestones: -1, maxReminders: -1, maxUtilities: 20,
   recurringActivities: true, subActivities: true, documentUpload: true,
   analytics: true, dataExport: true, prioritySupport: true,
@@ -84,7 +86,7 @@ function PlanEditor({ planKey, plan, onChange }) {
       {/* Pricing */}
       <Section
         title={`${icon} ${plan.name ?? planKey} — Pricing`}
-        desc="Display name and monthly price shown to users"
+        desc="Display name, monthly price, and optional yearly discount"
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -97,12 +99,30 @@ function PlanEditor({ planKey, plan, onChange }) {
             />
           </div>
           <NumericField
-            label="Price (₹ / month)"
+            label="Monthly Price (₹)"
             hint="0 for free"
             value={plan.price}
             onChange={v => set('price', v)}
           />
+          <NumericField
+            label="Yearly Price (₹ total)"
+            hint="Full amount charged per year, 0 to disable"
+            value={plan.yearlyPrice ?? 0}
+            onChange={v => set('yearlyPrice', v)}
+          />
+          <NumericField
+            label="Yearly Discount (%)"
+            hint="Displayed as badge, e.g. 17 → 'Save 17%'"
+            value={plan.yearlyDiscountPercent ?? 0}
+            onChange={v => set('yearlyDiscountPercent', v)}
+          />
         </div>
+        {(plan.yearlyPrice > 0) && (
+          <p className="text-xs text-indigo-600 mt-2">
+            ≈ ₹{Math.round(plan.yearlyPrice / 12)}/mo when billed yearly
+            {plan.yearlyDiscountPercent > 0 && ` — ${plan.yearlyDiscountPercent}% off`}
+          </p>
+        )}
       </Section>
 
       {/* Numeric limits */}

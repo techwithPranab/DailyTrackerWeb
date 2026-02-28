@@ -4,7 +4,9 @@ const mongoose = require('mongoose');
 const planSchema = new mongoose.Schema({
   // Display
   name:  { type: String },
-  price: { type: Number, default: 0 },
+  price: { type: Number, default: 0 },          // monthly price (₹)
+  yearlyPrice:           { type: Number, default: 0 },   // total yearly price (₹)
+  yearlyDiscountPercent: { type: Number, default: 0 },   // e.g. 20 means 20% off
 
   // Numeric limits  (-1 = unlimited, 0 = blocked/not available)
   maxActivities:  { type: Number, default: -1 },
@@ -60,6 +62,8 @@ const appSettingsSchema = new mongoose.Schema({
       default: () => ({
         name:                'Pro',
         price:               199,
+        yearlyPrice:         1990,   // ₹1990/yr  ≈ ₹166/mo  (≈17% off)
+        yearlyDiscountPercent: 17,
         maxActivities:       -1,
         maxMilestones:       -1,
         maxReminders:        -1,
