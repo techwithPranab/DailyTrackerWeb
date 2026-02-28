@@ -19,9 +19,19 @@ app.use(express.urlencoded({ extended: false }));
 
 // Enable CORS
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? process.env.FRONTEND_URL 
-    : 'http://localhost:3001',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    if (process.env.NODE_ENV === 'production') {
+      const allowed = (process.env.FRONTEND_URL || '').split(',').map(u => u.trim());
+      return allowed.includes(origin) ? callback(null, true) : callback(new Error('Not allowed by CORS'));
+    }
+    // Development: allow any localhost / 127.0.0.1 origin on any port
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
 
