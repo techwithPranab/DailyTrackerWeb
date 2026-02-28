@@ -79,7 +79,7 @@ const createOrder = async (req, res) => {
     const order = await razorpay.orders.create({
       amount,
       currency: 'INR',
-      receipt: `trakio_${req.user._id}_${Date.now()}`,
+      receipt: `rcpt_${req.user._id.toString().slice(-8)}_${Date.now().toString().slice(-10)}`,
       notes: {
         userId:       req.user._id.toString(),
         plan,
