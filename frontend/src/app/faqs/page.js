@@ -1,6 +1,3 @@
-'use client';
-
-import { useState } from 'react';
 import Link from 'next/link';
 
 const faqs = [
@@ -57,18 +54,12 @@ const faqs = [
 ];
 
 export default function FAQsPage() {
-  const [openIndex, setOpenIndex] = useState(null);
-
-  const toggle = (i) => {
-    setOpenIndex(openIndex === i ? null : i);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-green-600 text-white py-16 px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <div className="text-5xl mb-4">❓</div>
+          <div className="text-5xl mb-4" aria-hidden="true">❓</div>
           <h1 className="text-3xl sm:text-4xl font-bold mb-4">Frequently Asked Questions</h1>
           <p className="text-green-100 text-base sm:text-lg">
             Quick answers to the most common questions.
@@ -79,25 +70,20 @@ export default function FAQsPage() {
       {/* FAQ List */}
       <div className="max-w-3xl mx-auto px-4 py-12 space-y-4">
         {faqs.map((faq, i) => (
-          <div
+          <details
             key={i}
-            className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
+            className="group bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
           >
-            <button
-              onClick={() => toggle(i)}
-              className="w-full flex justify-between items-center px-6 py-5 text-left"
-            >
-              <span className="text-sm sm:text-base font-semibold text-gray-900">{faq.question}</span>
-              <span className={`ml-4 text-gray-500 text-xl transition-transform ${openIndex === i ? 'rotate-45' : ''}`}>
+            <summary className="flex justify-between items-center px-6 py-5 cursor-pointer list-none font-semibold text-gray-900 text-sm sm:text-base hover:bg-gray-50 transition-colors">
+              {faq.question}
+              <span className="ml-4 text-gray-500 text-xl group-open:rotate-45 transition-transform duration-200 select-none">
                 +
               </span>
-            </button>
-            {openIndex === i && (
-              <div className="px-6 pb-5 text-sm text-gray-600 leading-relaxed border-t border-gray-100">
-                <p className="pt-4">{faq.answer}</p>
-              </div>
-            )}
-          </div>
+            </summary>
+            <div className="px-6 pb-5 text-sm text-gray-600 leading-relaxed border-t border-gray-100">
+              <p className="pt-4">{faq.answer}</p>
+            </div>
+          </details>
         ))}
       </div>
 

@@ -252,6 +252,7 @@ export default function Home() {
         )}
       </nav>
 
+      <main id="main-content">
       {/* ── Hero ────────────────────────────────────────── */}
       <section aria-label="Hero" className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28 sm:py-36">
@@ -602,6 +603,7 @@ export default function Home() {
         </div>
       </section>
 
+      </main>
       {/* ── Footer ──────────────────────────────────────── */}
       <Footer />
     </div>
