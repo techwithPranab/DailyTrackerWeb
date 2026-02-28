@@ -266,114 +266,90 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* ── Stats Cards ──────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-            <div className="text-2xl sm:text-3xl font-bold text-blue-600">{stats.total}</div>
-            <div className="text-xs sm:text-sm text-gray-600 mt-1">Today's Tasks</div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-            <div className="text-2xl sm:text-3xl font-bold text-green-600">{stats.completed}</div>
-            <div className="text-xs sm:text-sm text-gray-600 mt-1">Completed</div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-            <div className="text-2xl sm:text-3xl font-bold text-yellow-600">{stats.inProgress}</div>
-            <div className="text-xs sm:text-sm text-gray-600 mt-1">In Progress</div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-            <div className="text-2xl sm:text-3xl font-bold text-gray-600">{stats.notStarted}</div>
-            <div className="text-xs sm:text-sm text-gray-600 mt-1">Not Started</div>
-          </div>
-        </div>
-
-        {/* ── Quick Actions ─────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <Link href="/activities"
-            className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow p-4 sm:p-6 hover:from-blue-600 hover:to-blue-700 transition-all">
-            <div className="text-3xl mb-2">📝</div>
-            <div className="text-base sm:text-lg font-semibold">Manage Activities</div>
-            <div className="text-xs sm:text-sm opacity-90 mt-1">Add, edit, or view activities</div>
-          </Link>
-          <Link href="/calendar"
-            className="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg shadow p-4 sm:p-6 hover:from-purple-600 hover:to-purple-700 transition-all">
-            <div className="text-3xl mb-2">📅</div>
-            <div className="text-base sm:text-lg font-semibold">View Calendar</div>
-            <div className="text-xs sm:text-sm opacity-90 mt-1">Monthly/Weekly view</div>
-          </Link>
-          <Link href="/milestones"
-            className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg shadow p-4 sm:p-6 hover:from-green-600 hover:to-green-700 transition-all">
-            <div className="text-3xl mb-2">🎯</div>
-            <div className="text-base sm:text-lg font-semibold">Track Milestones</div>
-            <div className="text-xs sm:text-sm opacity-90 mt-1">Set and achieve goals</div>
-          </Link>
-        </div>
-
-        {/* ── Upcoming Services ─────────────────────────────────────────── */}
-        {upcomingServices.length > 0 && (
-          <div className="mb-6 sm:mb-8">
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Upcoming Services ⚙️</h2>
-              <Link href="/utilities" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                All utilities →
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {upcomingServices.slice(0, 6).map((svc, idx) => {
-                const days = svc.daysUntilDue ?? 0;
-                const badgeColor = days <= 0   ? 'bg-red-100 text-red-700 border-red-200'
-                  : days <= 3  ? 'bg-orange-100 text-orange-700 border-orange-200'
-                  : days <= 7  ? 'bg-yellow-100 text-yellow-700 border-yellow-200'
-                  :              'bg-blue-50 text-blue-700 border-blue-200';
-                return (
-                  <Link key={idx} href={`/utilities/${svc.utilityId}`}
-                    className="bg-white rounded-lg shadow p-4 border-l-4 border-orange-400 hover:shadow-md transition-shadow block">
-                    <div className="flex justify-between items-start gap-2">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 truncate">{svc.utilityName}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{svc.serviceType}</p>
-                      </div>
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full border shrink-0 ${badgeColor}`}>
-                        {days <= 0 ? 'Overdue' : days === 1 ? 'Tomorrow' : `${days}d`}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-400 mt-2">
-                      📅 {format(new Date(svc.scheduledDate), 'MMM d, yyyy')}
-                    </p>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ── Upcoming Reminders ────────────────────────────────────────────── */}
+        {/* ── Upcoming Reminders & Services ─────────────────────────────── */}
         <div className="mt-6 sm:mt-8">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">
             Upcoming Reminders ⏰
           </h2>
-          {upcomingReminders.length > 0 ? (
-            <div className="bg-white shadow overflow-hidden sm:rounded-md">
-              <ul className="divide-y divide-gray-200">
-                {upcomingReminders.slice(0, 5).map(reminder => (
-                  <li key={reminder._id} className="px-4 sm:px-6 py-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">{reminder.activityId?.name}</p>
-                        <p className="text-xs sm:text-sm text-gray-500">{reminder.message}</p>
+          {(() => {
+            // Merge activity reminders + utility service schedules into one sorted list
+            const reminderItems = upcomingReminders.map(r => ({
+              type: 'reminder',
+              id: r._id,
+              title: r.activityId?.name ?? 'Reminder',
+              subtitle: r.message,
+              date: new Date(r.reminderTime),
+              dateLabel: format(new Date(r.reminderTime), 'MMM d, HH:mm'),
+              badge: null,
+            }));
+
+            const serviceItems = upcomingServices.map(s => {
+              const days = s.daysUntilDue ?? 0;
+              const badgeColor = days <= 0  ? 'bg-red-100 text-red-700'
+                : days <= 3  ? 'bg-orange-100 text-orange-700'
+                : days <= 7  ? 'bg-yellow-100 text-yellow-700'
+                :              'bg-blue-50 text-blue-700';
+              return {
+                type: 'service',
+                id: s.serviceId,
+                utilityId: s.utilityId,
+                title: s.utilityName,
+                subtitle: `🔧 ${s.serviceType}`,
+                date: new Date(s.scheduledDate),
+                dateLabel: format(new Date(s.scheduledDate), 'MMM d, yyyy'),
+                badge: { label: days <= 0 ? 'Overdue' : days === 1 ? 'Tomorrow' : `${days}d`, color: badgeColor },
+              };
+            });
+
+            const allItems = [...reminderItems, ...serviceItems]
+              .sort((a, b) => a.date - b.date);
+
+            if (allItems.length === 0) {
+              return (
+                <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+                  No upcoming reminders or services
+                </div>
+              );
+            }
+
+            return (
+              <div className="bg-white shadow overflow-hidden sm:rounded-xl divide-y divide-gray-100">
+                {allItems.map(item => (
+                  item.type === 'service' ? (
+                    <Link key={`svc-${item.id}`} href={`/utilities/${item.utilityId}`}
+                      className="flex items-center justify-between px-4 sm:px-6 py-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="text-xl shrink-0">⚙️</span>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{item.title}</p>
+                          <p className="text-xs text-gray-500">{item.subtitle}</p>
+                        </div>
                       </div>
-                      <span className="text-xs sm:text-sm text-gray-500 sm:ml-4 flex-shrink-0">
-                        {format(new Date(reminder.reminderTime), 'MMM dd, HH:mm')}
-                      </span>
+                      <div className="flex items-center gap-2 shrink-0 ml-3">
+                        {item.badge && (
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${item.badge.color}`}>
+                            {item.badge.label}
+                          </span>
+                        )}
+                        <span className="text-xs text-gray-400">{item.dateLabel}</span>
+                      </div>
+                    </Link>
+                  ) : (
+                    <div key={`rem-${item.id}`} className="flex items-center justify-between px-4 sm:px-6 py-4">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="text-xl shrink-0">⏰</span>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{item.title}</p>
+                          <p className="text-xs text-gray-500">{item.subtitle}</p>
+                        </div>
+                      </div>
+                      <span className="text-xs text-gray-400 shrink-0 ml-3">{item.dateLabel}</span>
                     </div>
-                  </li>
+                  )
                 ))}
-              </ul>
-            </div>
-          ) : (
-            <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
-              No upcoming reminders
-            </div>
-          )}
+              </div>
+            );
+          })()}
         </div>
       </div>
     </ProtectedLayout>

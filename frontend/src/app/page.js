@@ -64,14 +64,26 @@ export default function Home() {
     {
       icon: '⏰',
       title: 'Smart Reminders',
-      desc: 'Never miss an important activity. Set custom reminders and get notified at exactly the right time.',
+      desc: 'Never miss an important activity or service. Get automatic reminders 7 days before every scheduled service is due.',
       gradient: 'from-red-50 to-rose-50',
+    },
+    {
+      icon: '🏠',
+      title: 'Home Utility Tracker',
+      desc: 'Track appliances, HVAC, plumbing, vehicles and more. Log warranties, upload documents, and schedule service reminders — all in one place.',
+      gradient: 'from-teal-50 to-cyan-50',
     },
     {
       icon: '📊',
       title: 'Personal Dashboard',
-      desc: "Your day at a glance — today's activities, completion stats, upcoming reminders, and quick-access actions.",
+      desc: "Your day at a glance — today's tasks, upcoming service schedules, reminders, and everything that needs your attention.",
       gradient: 'from-cyan-50 to-blue-50',
+    },
+    {
+      icon: '📎',
+      title: 'Document Storage',
+      desc: 'Upload warranty cards, manuals, invoices, and service reports directly to each appliance via Cloudinary — always within reach.',
+      gradient: 'from-orange-50 to-amber-50',
     },
   ];
 
@@ -104,11 +116,6 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Logo href="/" size="md" />
-            <div className="hidden sm:flex items-center gap-1 text-sm font-medium text-gray-600">
-              <Link href="/pricing" className="px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-gray-900 transition-colors">Pricing</Link>
-              <Link href="/faqs" className="px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-gray-900 transition-colors">FAQs</Link>
-              <Link href="/contact" className="px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-gray-900 transition-colors">Contact</Link>
-            </div>
             <div className="flex items-center gap-2 sm:gap-3">
               <Link
                 href="/login"
@@ -133,15 +140,15 @@ export default function Home() {
           <div className="text-center max-w-3xl mx-auto">
             {/* Badge */}
             <div className="inline-flex items-center gap-2 bg-white/10 text-white text-xs sm:text-sm font-medium px-4 py-1.5 rounded-full mb-6 border border-white/20">
-              <span>⚡</span> Personal productivity, simplified
+              <span>⚡</span> Tasks, habits &amp; home — all in one place
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-tight">
               Track Everything.
               <span className="block text-yellow-300 mt-1">Achieve Anything.</span>
             </h1>
             <p className="mt-6 text-lg sm:text-xl text-blue-100 max-w-2xl mx-auto leading-relaxed">
-              TrakIO is your personal activity tracker — manage daily tasks, build recurring habits,
-              hit milestones, and stay on schedule with a smart calendar and reminders.
+              TrakIO is your all-in-one personal tracker — manage daily tasks, build recurring habits,
+              hit milestones, and never miss an appliance service again with smart home utility management.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">
               <Link
@@ -197,20 +204,68 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Stats ───────────────────────────────────────── */}
-      <section aria-label="Stats" className="bg-gradient-to-r from-blue-600 to-indigo-700 py-16">
+      {/* ── Home Utility Spotlight ───────────────────────── */}
+      <section aria-label="Home Utility" className="py-24 bg-gradient-to-br from-teal-50 to-cyan-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
+          <div className="text-center mb-14">
+            <span className="inline-block bg-teal-100 text-teal-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide mb-4">New Feature</span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900">
+              🏠 Home Utility Management
+            </h2>
+            <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
+              Stop losing track of when your AC was last serviced or when the water heater warranty expires.
+              TrakIO keeps your entire home organised.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
             {[
-              { value: '25,000+', label: 'Activities Tracked' },
-              { value: '5,000+', label: 'Active Users' },
-              { value: '98%', label: 'Satisfaction Rate' },
-            ].map((s) => (
-              <div key={s.label}>
-                <div className="text-5xl font-extrabold text-white mb-2">{s.value}</div>
-                <div className="text-blue-100 text-lg">{s.label}</div>
+              {
+                icon: '🔧',
+                title: 'Service Schedule Tracking',
+                desc: 'Log past and upcoming service dates for every appliance. TrakIO automatically reminds you 7 days before the next service is due — so you never miss a beat.',
+              },
+              {
+                icon: '📎',
+                title: 'Document Vault',
+                desc: 'Upload warranty cards, user manuals, invoices, and service reports against each appliance. Stored securely on Cloudinary and accessible any time.',
+              },
+              {
+                icon: '⚠️',
+                title: 'Warranty Expiry Alerts',
+                desc: "Know exactly when warranties are about to expire. Colour-coded badges flag items expiring within 30 days so you can act before it's too late.",
+              },
+              {
+                icon: '📋',
+                title: 'Full Appliance Registry',
+                desc: 'Maintain a complete register of every home appliance — brand, model, purchase date, location, and current status. All searchable and filterable.',
+              },
+            ].map((item) => (
+              <div key={item.title} className="bg-white rounded-2xl p-6 shadow-sm border border-teal-100 flex gap-4">
+                <span className="text-3xl shrink-0">{item.icon}</span>
+                <div>
+                  <h3 className="text-base font-bold text-gray-900 mb-1">{item.title}</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed">{item.desc}</p>
+                </div>
               </div>
             ))}
+          </div>
+          {/* Categories */}
+          <div className="text-center">
+            <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Track any category</p>
+            <div className="flex flex-wrap justify-center gap-3">
+              {[
+                { icon: '🏠', label: 'Appliances' },
+                { icon: '❄️', label: 'HVAC' },
+                { icon: '🔧', label: 'Plumbing' },
+                { icon: '⚡', label: 'Electrical' },
+                { icon: '🚗', label: 'Vehicles' },
+                { icon: '📦', label: 'Other' },
+              ].map((c) => (
+                <span key={c.label} className="inline-flex items-center gap-1.5 bg-white border border-teal-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-full shadow-sm">
+                  {c.icon} {c.label}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -243,15 +298,18 @@ export default function Home() {
             Why TrakIO?
           </h2>
           <p className="text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto mb-12">
-            Most to-do apps are too complex or too simple. TrakIO hits the sweet spot —
-            it gives you structured activity scheduling, habit recurrence, milestone tracking,
-            and a visual calendar in one clean, fast interface. No clutter. No noise.
+            Most productivity apps only handle tasks. TrakIO goes further — combining activity scheduling,
+            habit recurrence, milestone tracking, and complete home appliance management in one clean interface.
+            No clutter. No switching between apps.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {[
-              { icon: '🚀', title: 'Fast Setup', desc: 'Create your first activity in under 60 seconds.' },
-              { icon: '🧠', title: 'Smart Scheduling', desc: 'Daily, weekly & monthly recurrence with pre-computed dates.' },
-              { icon: '🔒', title: 'Private & Secure', desc: 'Your data is yours. No ads, no third-party sharing.' },
+              { icon: '🚀', title: 'Fast Setup', desc: 'Create your first activity or add an appliance in under 60 seconds.' },
+              { icon: '🧠', title: 'Smart Scheduling', desc: 'Daily, weekly & monthly recurrence plus automatic service reminders — 7 days ahead.' },
+              { icon: '🏠', title: 'Home + Work in One', desc: 'Tasks, habits, milestones and home utilities — one login, one dashboard.' },
+              { icon: '📎', title: 'Document Ready', desc: 'Attach warranty cards and manuals to each appliance via secure cloud storage.' },
+              { icon: '🔒', title: 'Private & Secure', desc: 'Your data is yours. No ads, no third-party sharing, no surprises.' },
+              { icon: '⏰', title: 'Never Miss a Service', desc: 'Automatic reminders before every scheduled maintenance keep your home running smoothly.' },
             ].map((w) => (
               <div key={w.title} className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
                 <div className="text-4xl mb-3">{w.icon}</div>
@@ -270,7 +328,7 @@ export default function Home() {
             Ready to Take Control of Your Day?
           </h2>
           <p className="text-lg text-blue-100 mb-8">
-            Join thousands of people using TrakIO to build better habits and hit their goals.
+            Join thousands of people using TrakIO to manage tasks, build habits, and keep their home running smoothly.
           </p>
           <Link
             href="/register"
