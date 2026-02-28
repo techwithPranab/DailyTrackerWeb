@@ -127,6 +127,7 @@ export default function Home() {
 
             {/* Desktop nav links */}
             <div className="hidden sm:flex items-center gap-5 text-sm font-medium text-gray-500">
+              <Link href="/pricing" className="hover:text-gray-900 transition-colors">Pricing</Link>
               <a href="#faqs" className="hover:text-gray-900 transition-colors">FAQs</a>
             </div>
 
@@ -169,6 +170,13 @@ export default function Home() {
         {mobileMenuOpen && (
           <div className="sm:hidden border-t border-gray-100 bg-white/95 backdrop-blur-md">
             <div className="px-4 pt-3 pb-4 space-y-1">
+              <Link
+                href="/pricing"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+              >
+                Pricing
+              </Link>
               <a
                 href="#faqs"
                 onClick={() => setMobileMenuOpen(false)}
