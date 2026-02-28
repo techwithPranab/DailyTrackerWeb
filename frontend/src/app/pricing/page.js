@@ -1,11 +1,18 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Footer from '@/components/Layout/Footer';
 import Logo from '@/components/Logo';
+import PlanModal from '@/components/Subscription/PlanModal';
+import SubscriptionBadge from '@/components/Subscription/SubscriptionBadge';
+import { useAuth } from '@/context/AuthContext';
+import toast from 'react-hot-toast';
 
 const plans = [
   {
+    key: 'free',
     name: 'Free',
     price: '₹0',
     period: 'forever',
@@ -29,6 +36,7 @@ const plans = [
     ],
   },
   {
+    key: 'pro',
     name: 'Pro',
     price: '₹199',
     period: 'per month',
@@ -50,6 +58,7 @@ const plans = [
     missing: [],
   },
   {
+    key: 'enterprise',
     name: 'Enterprise',
     price: '₹999',
     period: 'per month',
@@ -92,6 +101,37 @@ const faqItems = [
 ];
 
 export default function PricingPage() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const [showModal, setShowModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+
+  const currentPlan = user?.subscription?.plan ?? 'free';
+
+  const handleCta = (plan) => {
+    if (!user) {
+      router.push('/register');
+      return;
+    }
+    if (plan.key === 'free') {
+      toast('You are already on the Free plan or can downgrade from your subscription page.');
+      return;
+    }
+    if (plan.key === currentPlan) {
+      toast('This is your current plan.');
+      return;
+    }
+    setSelectedPlan(plan.key);
+    setShowModal(true);
+  };
+
+  const getCtaLabel = (plan) => {
+    if (!user) return plan.cta;
+    if (plan.key === currentPlan) return '✓ Current Plan';
+    if (plan.key === 'free') return currentPlan !== 'free' ? 'Downgrade' : '✓ Current Plan';
+    return plan.key === 'enterprise' ? 'Upgrade to Enterprise' : 'Upgrade to Pro';
+  };
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Nav */}
@@ -105,12 +145,26 @@ export default function PricingPage() {
               <Link href="/contact" className="hover:text-gray-900 transition-colors">Contact</Link>
             </div>
             <div className="flex items-center gap-3">
-              <Link href="/login" className="text-sm font-medium text-gray-700 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">
-                Login
-              </Link>
-              <Link href="/register" className="text-sm font-semibold bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                Get Started Free
-              </Link>
+              {user ? (
+                <>
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
+                    <span>{user.name}</span>
+                    <SubscriptionBadge plan={currentPlan} />
+                  </div>
+                  <Link href="/dashboard" className="text-sm font-semibold bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    Dashboard
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" className="text-sm font-medium text-gray-700 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    Login
+                  </Link>
+                  <Link href="/register" className="text-sm font-semibold bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    Get Started Free
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -134,16 +188,26 @@ export default function PricingPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
           {plans.map((plan) => {
             const isPopular = plan.badge === 'Most Popular';
+            const isCurrent = user && plan.key === currentPlan;
             return (
               <div
                 key={plan.name}
                 className={`relative rounded-2xl border p-8 flex flex-col ${
-                  isPopular
+                  isCurrent
+                    ? 'border-green-500 shadow-xl ring-2 ring-green-400'
+                    : isPopular
                     ? 'border-blue-500 shadow-xl ring-2 ring-blue-500'
                     : 'border-gray-200 shadow-sm'
                 }`}
               >
-                {isPopular && (
+                {isCurrent && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                    <span className="bg-green-500 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow">
+                      Your Current Plan
+                    </span>
+                  </div>
+                )}
+                {!isCurrent && isPopular && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                     <span className="bg-blue-600 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow">
                       Most Popular
@@ -160,16 +224,19 @@ export default function PricingPage() {
                   </div>
                 </div>
 
-                <Link
-                  href={plan.href}
-                  className={`w-full text-center py-3 rounded-xl font-semibold text-sm transition-colors mb-8 ${
-                    isPopular
-                      ? 'bg-blue-600 text-white hover:bg-blue-700'
-                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                <button
+                  onClick={() => handleCta(plan)}
+                  disabled={isCurrent || (user && plan.key === 'free' && currentPlan === 'free')}
+                  className={`w-full text-center py-3 rounded-xl font-semibold text-sm transition-colors mb-8 disabled:cursor-not-allowed ${
+                    isCurrent
+                      ? 'bg-green-100 text-green-700 cursor-default'
+                      : isPopular
+                      ? 'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60'
+                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200 disabled:opacity-60'
                   }`}
                 >
-                  {plan.cta}
-                </Link>
+                  {getCtaLabel(plan)}
+                </button>
 
                 <ul className="space-y-3 flex-1">
                   {plan.features.map((f) => (
@@ -267,6 +334,17 @@ export default function PricingPage() {
       </section>
 
       <Footer />
+
+      {showModal && (
+        <PlanModal
+          currentPlan={currentPlan}
+          onClose={() => { setShowModal(false); setSelectedPlan(null); }}
+          onSuccess={() => {
+            setShowModal(false);
+            toast.success('Subscription upgraded! 🎉');
+          }}
+        />
+      )}
     </div>
   );
 }

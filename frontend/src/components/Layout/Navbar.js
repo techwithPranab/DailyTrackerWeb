@@ -5,11 +5,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import Logo from '@/components/Logo';
+import SubscriptionBadge from '@/components/Subscription/SubscriptionBadge';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   const navLinks = [
     { href: '/dashboard', label: 'Dashboard', icon: '📊' },
@@ -20,13 +22,8 @@ export default function Navbar() {
     { href: '/utilities', label: 'Utilities', icon: '🏠' },
   ];
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
+  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
     <nav className="bg-white shadow-lg">
@@ -56,17 +53,43 @@ export default function Navbar() {
           </div>
 
           {/* Desktop User Info & Logout */}
-          <div className="hidden md:flex md:items-center">
-            <div className="flex-shrink-0">
-              <span className="text-gray-700 text-sm mr-4">
-                {user?.name}
-              </span>
+          <div className="hidden md:flex md:items-center gap-3">
+            <div className="relative">
               <button
-                onClick={logout}
-                className="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                Logout
+                <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                  {user?.name?.charAt(0).toUpperCase()}
+                </div>
+                <span className="text-gray-700 text-sm font-medium">{user?.name}</span>
+                <SubscriptionBadge plan={user?.subscription?.plan} />
+                <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
               </button>
+
+              {showUserMenu && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setShowUserMenu(false)} />
+                  <div className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-20">
+                    <Link
+                      href="/subscription"
+                      onClick={() => setShowUserMenu(false)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      <span>💳</span> Subscription
+                    </Link>
+                    <hr className="my-1 border-gray-100" />
+                    <button
+                      onClick={() => { setShowUserMenu(false); logout(); }}
+                      className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                    >
+                      <span>🚪</span> Logout
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -142,11 +165,21 @@ export default function Navbar() {
               </div>
             </div>
             <div className="ml-3">
-              <div className="text-base font-medium text-gray-800">{user?.name}</div>
+              <div className="text-base font-medium text-gray-800 flex items-center gap-2">
+                {user?.name}
+                <SubscriptionBadge plan={user?.subscription?.plan} />
+              </div>
               <div className="text-sm font-medium text-gray-500">{user?.email}</div>
             </div>
           </div>
-          <div className="mt-3 px-2">
+          <div className="mt-3 px-2 space-y-1">
+            <Link
+              href="/subscription"
+              onClick={closeMobileMenu}
+              className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md"
+            >
+              💳 Subscription
+            </Link>
             <button
               onClick={() => {
                 closeMobileMenu();

@@ -19,17 +19,20 @@ function StatCard({ icon, label, value, sub, color }) {
 }
 
 export default function AdminDashboardPage() {
-  const [stats, setStats] = useState(null);
-  const [feed, setFeed] = useState(null);
+  const [stats,   setStats]   = useState(null);
+  const [feed,    setFeed]    = useState(null);
+  const [revenue, setRevenue] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
       adminApi.get('/admin/stats'),
-      adminApi.get('/admin/activity-feed')
-    ]).then(([s, f]) => {
+      adminApi.get('/admin/activity-feed'),
+      adminApi.get('/admin/revenue'),
+    ]).then(([s, f, r]) => {
       setStats(s.data.data);
       setFeed(f.data.data);
+      setRevenue(r.data.data);
     }).catch(console.error).finally(() => setLoading(false));
   }, []);
 
@@ -60,6 +63,34 @@ export default function AdminDashboardPage() {
           <StatCard icon="✅" label="Active Users" value={stats?.users?.active} sub="active accounts" color="bg-green-900/50 text-green-300" />
           <StatCard icon="💳" label="Pro Subscribers" value={stats?.subscriptions?.pro} sub={`${stats?.subscriptions?.enterprise} enterprise`} color="bg-indigo-900/50 text-indigo-300" />
           <StatCard icon="📝" label="Total Activities" value={stats?.content?.activities} sub={`${stats?.content?.milestones} milestones`} color="bg-purple-900/50 text-purple-300" />
+        </div>
+
+        {/* Revenue KPI row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4">
+            <span className="text-3xl">💰</span>
+            <div>
+              <p className="text-xs text-gray-400 mb-0.5">Monthly Recurring Revenue</p>
+              <p className="text-2xl font-extrabold text-green-600">
+                {revenue?.mrr != null ? `₹${(revenue.mrr / 100).toLocaleString('en-IN')}` : '—'}
+              </p>
+            </div>
+            <Link href="/admin/revenue" className="ml-auto text-xs text-blue-500 hover:underline whitespace-nowrap">
+              View details →
+            </Link>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4">
+            <span className="text-3xl">📊</span>
+            <div>
+              <p className="text-xs text-gray-400 mb-0.5">Total Revenue</p>
+              <p className="text-2xl font-extrabold text-blue-600">
+                {revenue?.totalRevenue != null ? `₹${(revenue.totalRevenue / 100).toLocaleString('en-IN')}` : '—'}
+              </p>
+            </div>
+            <Link href="/admin/transactions" className="ml-auto text-xs text-blue-500 hover:underline whitespace-nowrap">
+              All transactions →
+            </Link>
+          </div>
         </div>
 
         {/* Subscription breakdown */}
@@ -147,11 +178,13 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Quick Links */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {[
-            { href: '/admin/users', icon: '👥', label: 'Manage Users', desc: 'View, edit, suspend users' },
+            { href: '/admin/users',         icon: '👥', label: 'Manage Users',  desc: 'View, edit, suspend users' },
             { href: '/admin/subscriptions', icon: '💳', label: 'Subscriptions', desc: 'Plan breakdown & changes' },
-            { href: '/admin/settings', icon: '⚙️', label: 'App Settings', desc: 'Branding, plans, contact' },
+            { href: '/admin/transactions',  icon: '🧾', label: 'Transactions',  desc: 'All payment records' },
+            { href: '/admin/revenue',       icon: '📈', label: 'Revenue',       desc: 'MRR & monthly trends' },
+            { href: '/admin/settings',      icon: '⚙️', label: 'App Settings',  desc: 'Branding, plans, contact' },
           ].map(q => (
             <Link
               key={q.href}

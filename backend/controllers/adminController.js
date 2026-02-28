@@ -1,8 +1,9 @@
-const User = require('../models/User');
-const Activity = require('../models/Activity');
-const Milestone = require('../models/Milestone');
-const Reminder = require('../models/Reminder');
-const AppSettings = require('../models/AppSettings');
+const User         = require('../models/User');
+const Activity     = require('../models/Activity');
+const Milestone    = require('../models/Milestone');
+const Reminder     = require('../models/Reminder');
+const AppSettings  = require('../models/AppSettings');
+const Subscription = require('../models/Subscription');
 
 // ─── Helper ─────────────────────────────────────────────────────────────────
 const getOrCreateSettings = async () => {
@@ -284,5 +285,188 @@ module.exports = {
   getSettings,
   updateSettings,
   adminLogin,
-  getActivityFeed
+  getActivityFeed,
+  getSubscriptions,
+  getRevenueStats,
+  adminUpdateSubscription,
+  getTransactions
 };
+
+// ─── Admin: All Subscriptions ─────────────────────────────────────────────────
+// @route GET /api/admin/subscriptions
+async function getSubscriptions(req, res) {
+  try {
+    const page   = parseInt(req.query.page)  || 1;
+    const limit  = parseInt(req.query.limit) || 20;
+    const skip   = (page - 1) * limit;
+    const { plan, status, search } = req.query;
+
+    // Build user filter for search
+    let userIds;
+    if (search) {
+      const matchedUsers = await User.find({
+        $or: [
+          { name:  { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } }
+        ]
+      }).select('_id');
+      userIds = matchedUsers.map(u => u._id);
+    }
+
+    const query = {};
+    if (plan)    query.plan   = plan;
+    if (status)  query.status = status;
+    if (userIds) query.userId = { $in: userIds };
+
+    const [subscriptions, total] = await Promise.all([
+      Subscription.find(query)
+        .populate('userId', 'name email status')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Subscription.countDocuments(query)
+    ]);
+
+    res.json({
+      success: true,
+      data: subscriptions,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+// ─── Admin: Revenue Stats ─────────────────────────────────────────────────────
+// @route GET /api/admin/revenue
+async function getRevenueStats(req, res) {
+  try {
+    // All active paid subscriptions
+    const activeSubscriptions = await Subscription.find({ status: 'active', plan: { $ne: 'free' } });
+
+    // MRR calculation
+    let mrr = 0;
+    activeSubscriptions.forEach(s => {
+      if (s.billingCycle === 'yearly') {
+        mrr += Math.round(s.amount / 12);
+      } else {
+        mrr += s.amount;
+      }
+    });
+
+    // Total revenue (all invoices)
+    const allSubs = await Subscription.find({ 'invoices.0': { $exists: true } });
+    let totalRevenue = 0;
+    const monthlyBreakdown = {};
+
+    allSubs.forEach(sub => {
+      sub.invoices.forEach(inv => {
+        totalRevenue += inv.amount;
+        const month = new Date(inv.paidAt).toISOString().slice(0, 7); // YYYY-MM
+        monthlyBreakdown[month] = (monthlyBreakdown[month] || 0) + inv.amount;
+      });
+    });
+
+    // Plan counts for active subs
+    const [proCount, enterpriseCount] = await Promise.all([
+      Subscription.countDocuments({ status: 'active', plan: 'pro' }),
+      Subscription.countDocuments({ status: 'active', plan: 'enterprise' })
+    ]);
+
+    // Build sorted monthly array for chart
+    const months = Object.entries(monthlyBreakdown)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-12)
+      .map(([month, amount]) => ({ month, amount }));
+
+    res.json({
+      success: true,
+      data: {
+        mrr,
+        totalRevenue,
+        activePaidUsers: proCount + enterpriseCount,
+        proCount,
+        enterpriseCount,
+        monthlyBreakdown: months
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+// ─── Admin: Manually update a subscription ───────────────────────────────────
+// @route PUT /api/admin/subscriptions/:id
+async function adminUpdateSubscription(req, res) {
+  try {
+    const { plan, status, endDate } = req.body;
+    const subscription = await Subscription.findById(req.params.id);
+    if (!subscription) return res.status(404).json({ success: false, message: 'Subscription not found' });
+
+    if (plan)    subscription.plan    = plan;
+    if (status)  subscription.status  = status;
+    if (endDate) subscription.endDate = new Date(endDate);
+    await subscription.save();
+
+    // Sync User model
+    const userUpdate = {};
+    if (plan)   userUpdate['subscription.plan']    = plan;
+    if (status) userUpdate['subscription.status']  = status;
+    if (endDate) userUpdate['subscription.endDate'] = new Date(endDate);
+    if (Object.keys(userUpdate).length) {
+      await User.findByIdAndUpdate(subscription.userId, userUpdate);
+    }
+
+    res.json({ success: true, data: subscription });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+// ─── Admin: All Transactions (invoices flattened) ────────────────────────────
+// @route GET /api/admin/transactions
+async function getTransactions(req, res) {
+  try {
+    const page  = parseInt(req.query.page)  || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip  = (page - 1) * limit;
+
+    const subsWithInvoices = await Subscription.find({ 'invoices.0': { $exists: true } })
+      .populate('userId', 'name email')
+      .sort({ createdAt: -1 });
+
+    // Flatten all invoices
+    const transactions = [];
+    subsWithInvoices.forEach(sub => {
+      sub.invoices.forEach(inv => {
+        transactions.push({
+          _id:               inv._id,
+          razorpayPaymentId: inv.razorpayPaymentId,
+          amount:            inv.amount,
+          currency:          inv.currency,
+          paidAt:            inv.paidAt,
+          plan:              sub.plan,
+          billingCycle:      sub.billingCycle,
+          user: {
+            _id:   sub.userId?._id,
+            name:  sub.userId?.name,
+            email: sub.userId?.email
+          }
+        });
+      });
+    });
+
+    // Sort by paidAt desc, then paginate
+    transactions.sort((a, b) => new Date(b.paidAt) - new Date(a.paidAt));
+    const total   = transactions.length;
+    const paged   = transactions.slice(skip, skip + limit);
+
+    res.json({
+      success: true,
+      data: paged,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+}

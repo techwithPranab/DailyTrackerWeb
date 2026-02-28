@@ -33,7 +33,8 @@ app.use('/api/milestones', require('./routes/milestones'));
 app.use('/api/reminders', require('./routes/reminders'));
 app.use('/api/progress', require('./routes/progress'));
 app.use('/api/admin', require('./routes/admin'));
-app.use('/api/utilities', require('./routes/utilities'));
+app.use('/api/utilities',      require('./routes/utilities'));
+app.use('/api/subscriptions',  require('./routes/subscriptions'));
 
 // Health check route
 app.get('/api/health', (req, res) => {
