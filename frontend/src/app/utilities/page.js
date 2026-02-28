@@ -27,7 +27,7 @@ export default function UtilitiesPage() {
       if (category   !== 'All') params.category = category;
       if (statusFilter !== 'All') params.status  = statusFilter;
       const { data } = await api.get('/utilities', { params });
-      setUtilities(data.utilities ?? data);
+      setUtilities(data.data ?? data.utilities ?? []);
     } catch (err) {
       setError('Failed to load utilities.');
       console.error(err);

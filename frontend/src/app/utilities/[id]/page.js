@@ -49,7 +49,7 @@ export default function UtilityDetailPage() {
     setLoading(true);
     try {
       const { data } = await api.get(`/utilities/${id}`);
-      setUtility(data);
+      setUtility(data.data);
     } catch (err) {
       setError(err.response?.data?.message ?? 'Could not load utility.');
     } finally {
@@ -64,7 +64,7 @@ export default function UtilityDetailPage() {
     setSavingUtil(true);
     try {
       const { data } = await api.put(`/utilities/${id}`, payload);
-      setUtility(data);
+      setUtility(data.data);
       setShowEditUtil(false);
     } catch (err) {
       setError(err.response?.data?.message ?? 'Update failed.');
@@ -92,10 +92,10 @@ export default function UtilityDetailPage() {
     try {
       if (editingService) {
         const { data } = await api.put(`/utilities/${id}/services/${editingService._id}`, payload);
-        setUtility(data);
+        setUtility(data.data);
       } else {
         const { data } = await api.post(`/utilities/${id}/services`, payload);
-        setUtility(data);
+        setUtility(data.data);
       }
       setShowServiceForm(false);
     } catch (err) {
@@ -109,7 +109,7 @@ export default function UtilityDetailPage() {
     if (!confirm('Remove this service entry?')) return;
     try {
       const { data } = await api.delete(`/utilities/${id}/services/${sid}`);
-      setUtility(data);
+      setUtility(data.data);
     } catch (err) {
       setError('Could not delete service entry.');
     }
@@ -122,7 +122,7 @@ export default function UtilityDetailPage() {
         status: 'Completed',
         completedDate: new Date().toISOString().slice(0, 10)
       });
-      setUtility(data);
+      setUtility(data.data);
     } catch (err) {
       setError('Could not mark as completed.');
     }

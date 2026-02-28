@@ -155,7 +155,7 @@ export default function DashboardPage() {
       setTodayActivities(activities);
       setUpcomingReminders(remindersRes.data.data);
       setTodaySubActivities(subActivitiesRes.data.data);
-      setUpcomingServices(servicesRes.data?.services ?? servicesRes.data ?? []);
+      setUpcomingServices(servicesRes.data?.data ?? []);
 
       // Stats from today's sub-activities (more accurate per-day view)
       const subs = subActivitiesRes.data.data;
