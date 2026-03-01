@@ -217,6 +217,15 @@ const getUpcomingServices = async (req, res) => {
           s.scheduledDate >= now &&
           s.scheduledDate <= in30
         ) {
+          // Compare calendar days only (strip time), matching date-fns differenceInDays behaviour
+          const todayMidnight    = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          const serviceMidnight  = new Date(
+            s.scheduledDate.getFullYear(),
+            s.scheduledDate.getMonth(),
+            s.scheduledDate.getDate()
+          );
+          const daysUntilDue = Math.round((serviceMidnight - todayMidnight) / (1000 * 60 * 60 * 24));
+
           upcoming.push({
             utilityId:    u._id,
             utilityName:  u.name,
@@ -224,7 +233,7 @@ const getUpcomingServices = async (req, res) => {
             serviceId:    s._id,
             serviceType:  s.serviceType,
             scheduledDate: s.scheduledDate,
-            daysUntilDue: Math.ceil((s.scheduledDate - now) / (1000 * 60 * 60 * 24)),
+            daysUntilDue,
             isDueSoon:    s.scheduledDate <= in7,
             reminderSent: s.reminderSent
           });

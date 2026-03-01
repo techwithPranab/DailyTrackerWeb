@@ -19,8 +19,11 @@ const STATUS_COLORS = {
 };
 
 function getNextService(serviceSchedule) {
+  // Use start-of-today so services scheduled for today are still shown (not hidden by time-of-day)
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
   const upcoming = serviceSchedule
-    ?.filter(s => s.status === 'Upcoming' && new Date(s.scheduledDate) >= new Date())
+    ?.filter(s => s.status === 'Upcoming' && new Date(s.scheduledDate) >= todayStart)
     .sort((a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate));
   return upcoming?.[0] ?? null;
 }
@@ -28,15 +31,16 @@ function getNextService(serviceSchedule) {
 function ServiceBadge({ service }) {
   if (!service) return <span className="text-xs text-gray-400 italic">No upcoming service</span>;
   const days = differenceInDays(new Date(service.scheduledDate), new Date());
-  const color = days <= 0   ? 'bg-red-100 text-red-700 border-red-200'
+  const color = days < 0    ? 'bg-red-100 text-red-700 border-red-200'
+    : days === 0 ? 'bg-orange-100 text-orange-700 border-orange-200'
     : days <= 7  ? 'bg-orange-100 text-orange-700 border-orange-200'
     : days <= 30 ? 'bg-yellow-100 text-yellow-700 border-yellow-200'
     :              'bg-green-50 text-green-700 border-green-200';
 
   return (
     <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full border ${color}`}>
-      {days <= 0 ? '🔴' : days <= 7 ? '🟠' : '🟢'}
-      {days <= 0 ? 'Overdue' : days === 0 ? 'Today' : `in ${days}d`}
+      {days < 0 ? '🔴' : days <= 7 ? '🟠' : '🟢'}
+      {days < 0 ? 'Overdue' : days === 0 ? 'Today' : `in ${days}d`}
       <span className="font-normal opacity-75">· {service.serviceType}</span>
     </span>
   );

@@ -340,7 +340,8 @@ export default function DashboardPage() {
 
             const serviceItems = upcomingServices.map(s => {
               const days = s.daysUntilDue ?? 0;
-              const badgeColor = days <= 0  ? 'bg-red-100 text-red-700'
+              const badgeColor = days < 0   ? 'bg-red-100 text-red-700'
+                : days === 0 ? 'bg-orange-100 text-orange-700'
                 : days <= 3  ? 'bg-orange-100 text-orange-700'
                 : days <= 7  ? 'bg-yellow-100 text-yellow-700'
                 :              'bg-blue-50 text-blue-700';
@@ -352,7 +353,7 @@ export default function DashboardPage() {
                 subtitle: `🔧 ${s.serviceType}`,
                 date: new Date(s.scheduledDate),
                 dateLabel: format(new Date(s.scheduledDate), 'MMM d, yyyy'),
-                badge: { label: days <= 0 ? 'Overdue' : days === 1 ? 'Tomorrow' : `${days}d`, color: badgeColor },
+                badge: { label: days < 0 ? 'Overdue' : days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : `${days}d`, color: badgeColor },
               };
             });
 
