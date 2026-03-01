@@ -11,9 +11,16 @@ import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 
-const PLAN_DETAILS = {
-  free:       { icon: '🆓', label: 'Free',       price: '₹0/mo',   color: 'border-gray-200' },
-  pro:        { icon: '⭐', label: 'Pro',        price: '₹199/mo',  color: 'border-blue-300' },
+// ── Static UI decoration only (icons + border colour) ───────────────────────
+const PLAN_UI = {
+  free: { icon: '🆓', color: 'border-gray-200' },
+  pro:  { icon: '⭐', color: 'border-blue-300'  },
+};
+
+// ── Format a price number (₹) from AppSettings ──────────────────────────────
+const fmtPrice = (price) => {
+  if (!price || price === 0) return '₹0/mo';
+  return `₹${price}/mo`;
 };
 
 export default function SubscriptionPage() {
@@ -23,19 +30,28 @@ export default function SubscriptionPage() {
   const [loading,      setLoading]      = useState(true);
   const [showModal,    setShowModal]    = useState(false);
   const [cancelling,   setCancelling]   = useState(false);
+  const [planData,     setPlanData]     = useState(null); // live from AppSettings API
 
   const currentPlan = user?.subscription?.plan ?? 'free';
-  const planInfo    = PLAN_DETAILS[currentPlan] ?? PLAN_DETAILS.free;
+
+  // ── Derive display info from live plan data (fallback to sensible defaults) 
+  const livePlan  = planData?.[currentPlan];
+  const planLabel = livePlan?.name  ?? (currentPlan === 'pro' ? 'Pro' : 'Free');
+  const planPrice = livePlan?.price != null ? fmtPrice(livePlan.price) : (currentPlan === 'pro' ? '₹199/mo' : '₹0/mo');
+  const planUi    = PLAN_UI[currentPlan] ?? PLAN_UI.free;
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [subRes, invRes] = await Promise.all([
+      const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const [subRes, invRes, planRes] = await Promise.all([
         api.get('/subscriptions/me'),
-        api.get('/subscriptions/invoices')
+        api.get('/subscriptions/invoices'),
+        fetch(`${base}/settings/plans`).then(r => r.json()),
       ]);
       setSubscription(subRes.data.data?.subscription ?? null);
       setInvoices(invRes.data.data ?? []);
+      if (planRes.success && planRes.data) setPlanData(planRes.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -70,16 +86,16 @@ export default function SubscriptionPage() {
         </div>
 
         {/* Current Plan Card */}
-        <div className={`bg-white rounded-2xl border-2 ${planInfo.color} shadow-sm p-6`}>
+        <div className={`bg-white rounded-2xl border-2 ${planUi.color} shadow-sm p-6`}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <span className="text-4xl">{planInfo.icon}</span>
+              <span className="text-4xl">{planUi.icon}</span>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-bold text-gray-900">{planInfo.label} Plan</h2>
+                  <h2 className="text-xl font-bold text-gray-900">{planLabel} Plan</h2>
                   <SubscriptionBadge plan={currentPlan} />
                 </div>
-                <p className="text-sm text-gray-500 mt-0.5">{planInfo.price}</p>
+                <p className="text-sm text-gray-500 mt-0.5">{planPrice}</p>
               </div>
             </div>
             <div className="flex gap-2">
@@ -139,23 +155,59 @@ export default function SubscriptionPage() {
         {/* What's included */}
         <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
           <h3 className="font-semibold text-gray-800 mb-3">What&apos;s included in your plan</h3>
-          {currentPlan === 'free' && (
-            <ul className="space-y-1.5 text-sm text-gray-600">
-              <li className="flex gap-2"><span className="text-green-500">✓</span> Up to 10 activities</li>
-              <li className="flex gap-2"><span className="text-green-500">✓</span> Basic calendar view</li>
-              <li className="flex gap-2"><span className="text-green-500">✓</span> 1 reminder per activity</li>
-              <li className="flex gap-2"><span className="text-red-400">✗</span> <span className="text-gray-400">Recurring activities — <button onClick={() => setShowModal(true)} className="text-blue-500 underline">Upgrade</button></span></li>
-              <li className="flex gap-2"><span className="text-red-400">✗</span> <span className="text-gray-400">Milestone tracking — <button onClick={() => setShowModal(true)} className="text-blue-500 underline">Upgrade</button></span></li>
-              <li className="flex gap-2"><span className="text-red-400">✗</span> <span className="text-gray-400">Home Utility Tracker — <button onClick={() => setShowModal(true)} className="text-blue-500 underline">Upgrade</button></span></li>
-            </ul>
-          )}
-          {currentPlan === 'pro' && (
-            <ul className="space-y-1.5 text-sm text-gray-600">
-              {['Unlimited activities', 'Unlimited reminders', 'Recurring activities (daily, weekly, monthly)', 'Milestone tracking', 'Home Utility Tracker', 'Advanced analytics', 'Priority support'].map(f => (
-                <li key={f} className="flex gap-2"><span className="text-green-500">✓</span> {f}</li>
-              ))}
-            </ul>
-          )}
+          {(() => {
+            const p = planData?.[currentPlan];
+            if (!p) {
+              // skeleton while loading plan data
+              return (
+                <div className="space-y-2 animate-pulse">
+                  {[1,2,3,4].map(i => <div key={i} className="h-4 bg-gray-200 rounded w-3/4" />)}
+                </div>
+              );
+            }
+            const items = [];
+            // Activities
+            if (p.maxActivities === -1) items.push({ ok: true,  text: 'Unlimited activities' });
+            else if (p.maxActivities > 0) items.push({ ok: true, text: `Up to ${p.maxActivities} activities` });
+            // Calendar
+            items.push({ ok: true, text: 'Calendar view' });
+            // Reminders
+            if (p.maxReminders === -1) items.push({ ok: true,  text: 'Unlimited reminders' });
+            else if (p.maxReminders === 1) items.push({ ok: true, text: '1 reminder per activity' });
+            else if (p.maxReminders > 1)   items.push({ ok: true, text: `${p.maxReminders} reminders per activity` });
+            // Utilities
+            if (p.maxUtilities > 0) items.push({ ok: true, text: `Up to ${p.maxUtilities === -1 ? 'unlimited' : p.maxUtilities} home utilities` });
+            // Milestones
+            items.push({ ok: p.maxMilestones !== 0, text: 'Milestone tracking' });
+            // Feature flags
+            const flags = [
+              ['recurringActivities', 'Recurring activities (daily, weekly, monthly)'],
+              ['subActivities',       'Sub-activities'],
+              ['documentUpload',      'Document & photo upload'],
+              ['analytics',           'Analytics & charts'],
+              ['dataExport',          'Data export (CSV)'],
+              ['prioritySupport',     'Priority email support'],
+            ];
+            for (const [key, label] of flags) {
+              items.push({ ok: !!p[key], text: label });
+            }
+            return (
+              <ul className="space-y-1.5 text-sm">
+                {items.map(({ ok, text }) => (
+                  <li key={text} className="flex gap-2">
+                    <span className={ok ? 'text-green-500' : 'text-red-400'}>{ok ? '✓' : '✗'}</span>
+                    {ok ? (
+                      <span className="text-gray-600">{text}</span>
+                    ) : (
+                      <span className="text-gray-400">
+                        {text} — <button onClick={() => setShowModal(true)} className="text-blue-500 underline">Upgrade</button>
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            );
+          })()}
         </div>
 
         {/* Invoice history */}

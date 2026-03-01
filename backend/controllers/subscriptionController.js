@@ -2,44 +2,62 @@ const crypto       = require('crypto');
 const razorpay     = require('../config/razorpay');
 const Subscription = require('../models/Subscription');
 const User         = require('../models/User');
+const AppSettings  = require('../models/AppSettings');
 
-// ─── Plan catalogue ───────────────────────────────────────────────────────────
-const PLANS = {
-  free: {
-    name: 'Free',
-    price: { monthly: 0, yearly: 0 },
-    currency: 'INR',
-    features: [
-      'Up to 10 activities',
-      'Basic calendar view',
-      '1 reminder per activity',
-      'Weekly summary',
-      'Mobile-friendly interface'
-    ],
-    limits: { activities: 10, reminders: 1, recurring: false, milestones: false }
-  },
-  pro: {
-    name: 'Pro',
-    price: { monthly: 19900, yearly: 199900 },  // paise
-    currency: 'INR',
-    features: [
-      'Unlimited activities',
-      'Monthly & weekly calendar',
-      'Unlimited reminders',
-      'Recurring activities (daily, weekly, monthly)',
-      'Milestone tracking',
-      'Advanced analytics & charts',
-      'Home Utility Tracker',
-      'Priority email support',
-      'Data export (CSV)'
-    ],
-    limits: { activities: -1, reminders: -1, recurring: true, milestones: true }
-  },
+// ─── Static price fallbacks (paise) used when AppSettings has no DB record ───
+const PRICE_FALLBACK = {
+  free: { monthly: 0,     yearly: 0      },
+  pro:  { monthly: 19900, yearly: 199000 },  // ₹199/mo  |  ₹1990/yr
+};
+
+/**
+ * Load plan prices from AppSettings (DB).
+ * Returns { monthly: <paise>, yearly: <paise> } for the given plan key.
+ * Falls back to PRICE_FALLBACK if the DB document is absent.
+ */
+const getPlanPrices = async (plan) => {
+  try {
+    const settings = await AppSettings.findById('global').lean();
+    const p = settings?.plans?.[plan];
+    if (p) {
+      return {
+        // AppSettings stores prices in ₹ — convert to paise for Razorpay
+        monthly: Math.round((p.price        ?? 0) * 100),
+        yearly:  Math.round((p.yearlyPrice  ?? 0) * 100),
+      };
+    }
+  } catch (_) { /* fall through */ }
+  return PRICE_FALLBACK[plan] ?? PRICE_FALLBACK.free;
 };
 
 // ─── GET /api/subscriptions/plans ─────────────────────────────────────────────
-const getPlans = (req, res) => {
-  res.json({ success: true, data: PLANS });
+// Delegates to the public settings controller which already reads from AppSettings
+const getPlans = async (req, res) => {
+  try {
+    const settings = await AppSettings.findById('global').lean();
+    const DEFAULTS = {
+      free: { name: 'Free', price: { monthly: 0, yearly: 0 } },
+      pro:  { name: 'Pro',  price: { monthly: 19900, yearly: 199000 } },
+    };
+    if (!settings?.plans) return res.json({ success: true, data: DEFAULTS });
+
+    const toCard = (key, p) => ({
+      name:     p?.name    ?? key,
+      price:    { monthly: Math.round((p?.price       ?? 0) * 100),
+                  yearly:  Math.round((p?.yearlyPrice  ?? 0) * 100) },
+      currency: 'INR',
+    });
+
+    res.json({
+      success: true,
+      data: {
+        free: toCard('free', settings.plans.free),
+        pro:  toCard('pro',  settings.plans.pro),
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 };
 
 // ─── POST /api/subscriptions/create-order ─────────────────────────────────────
@@ -47,16 +65,22 @@ const createOrder = async (req, res) => {
   try {
     const { plan, billingCycle = 'monthly' } = req.body;
 
-    if (!PLANS[plan]) {
+    const validPlans = ['free', 'pro'];
+    if (!validPlans.includes(plan)) {
       return res.status(400).json({ success: false, message: 'Invalid plan' });
     }
     if (plan === 'free') {
       return res.status(400).json({ success: false, message: 'Free plan does not require payment' });
     }
-
-    const amount = PLANS[plan].price[billingCycle];
-    if (!amount) {
+    if (!['monthly', 'yearly'].includes(billingCycle)) {
       return res.status(400).json({ success: false, message: 'Invalid billing cycle' });
+    }
+
+    // ── Load price from AppSettings (DB) with static fallback ──────────────
+    const prices = await getPlanPrices(plan);
+    const amount = prices[billingCycle];
+    if (!amount) {
+      return res.status(400).json({ success: false, message: 'Price not configured for this plan and billing cycle' });
     }
 
     // Create Razorpay order

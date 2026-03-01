@@ -1,37 +1,84 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import { openCheckout } from '@/lib/razorpay';
 import toast from 'react-hot-toast';
 
-const PLANS = [
-  {
-    key: 'pro',
-    name: 'Pro',
-    icon: '⭐',
-    monthly: '₹199',
-    yearly: '₹1,999',
-    monthlyPaise: 19900,
-    yearlyPaise: 199900,
-    color: 'border-blue-500 ring-blue-500',
-    badge: 'Most Popular',
-    badgeColor: 'bg-blue-600 text-white',
-    features: [
-      'Unlimited activities',
-      'Unlimited reminders',
-      'Recurring activities',
-      'Milestone tracking',
-      'Home Utility Tracker',
-      'Advanced analytics',
-      'Priority support'
-    ]
-  }
-];
+// ── Static UI decoration (never changes based on plan config) ────────────────
+const PLAN_UI = {
+  pro: {
+    key:          'pro',
+    icon:         '⭐',
+    color:        'border-blue-500 ring-blue-500',
+    badge:        'Most Popular',
+    badgeColor:   'bg-blue-600 text-white',
+  },
+};
+
+// ── Format paise → "₹X" display string ───────────────────────────────────────
+const fmtPaise = (paise) => {
+  if (!paise || paise === 0) return '₹0';
+  return `₹${(paise / 100).toLocaleString('en-IN')}`;
+};
+
+// ── Build feature bullet list from an AppSettings plan object ────────────────
+const buildFeatures = (p) => {
+  if (!p) return [];
+  const list = [];
+  if (p.maxActivities === -1) list.push('Unlimited activities');
+  else if (p.maxActivities > 0) list.push(`Up to ${p.maxActivities} activities`);
+  if (p.maxReminders === -1)    list.push('Unlimited reminders');
+  else if (p.maxReminders === 1) list.push('1 reminder per activity');
+  if (p.recurringActivities)    list.push('Recurring activities');
+  if (p.maxMilestones !== 0)    list.push('Milestone tracking');
+  if (p.maxUtilities > 0)       list.push(`Up to ${p.maxUtilities === -1 ? 'unlimited' : p.maxUtilities} home utilities`);
+  if (p.analytics)              list.push('Advanced analytics');
+  if (p.dataExport)             list.push('Data export (CSV)');
+  if (p.prioritySupport)        list.push('Priority email support');
+  return list;
+};
 
 export default function PlanModal({ currentPlan, onClose, onSuccess }) {
   const [billingCycle, setBillingCycle] = useState('monthly');
-  const [loading, setLoading] = useState(null); // plan key being processed
+  const [loading, setLoading]           = useState(null); // plan key being processed
+  const [planData, setPlanData]         = useState(null); // from AppSettings API
+  const [planLoading, setPlanLoading]   = useState(true);
+
+  // Fetch live plan data from AppSettings on mount
+  useEffect(() => {
+    const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    fetch(`${base}/settings/plans`)
+      .then(r => r.json())
+      .then(json => { if (json.success && json.data) setPlanData(json.data); })
+      .catch(() => {/* use null — UI will show fallback */})
+      .finally(() => setPlanLoading(false));
+  }, []);
+
+  // ── Resolve pricing for the Pro plan ─────────────────────────────────────
+  const proPlan      = planData?.pro;
+  // AppSettings stores prices in ₹; convert to paise for Razorpay
+  const monthlyPaise = Math.round((proPlan?.price       ?? 199)  * 100);
+  const yearlyPaise  = Math.round((proPlan?.yearlyPrice  ?? 1990) * 100);
+  const yearlyDiscount = proPlan?.yearlyDiscountPercent ?? 0;
+  const hasYearly    = yearlyPaise > 0 && yearlyPaise !== monthlyPaise * 12;
+
+  // Build the single plan card data from live API response
+  const plans = [
+    {
+      ...PLAN_UI.pro,
+      name:        proPlan?.name  ?? 'Pro',
+      monthly:     fmtPaise(monthlyPaise),
+      yearly:      fmtPaise(yearlyPaise),
+      monthlyPaise,
+      yearlyPaise,
+      features:    buildFeatures(proPlan) || [
+        'Unlimited activities', 'Unlimited reminders',
+        'Recurring activities', 'Milestone tracking',
+        'Home Utility Tracker', 'Advanced analytics', 'Priority support',
+      ],
+    },
+  ];
 
   const handleSelectPlan = async (plan) => {
     if (plan.key === currentPlan) {
@@ -108,52 +155,67 @@ export default function PlanModal({ currentPlan, onClose, onSuccess }) {
             <button
               onClick={() => setBillingCycle('yearly')}
               className={`px-4 py-1.5 rounded-full font-medium transition-colors ${billingCycle === 'yearly' ? 'bg-white shadow text-gray-900' : 'text-gray-500'}`}>
-              Yearly <span className="text-green-600 text-xs font-semibold ml-1">Save 16%</span>
+              Yearly
+              {hasYearly && yearlyDiscount > 0 && (
+                <span className="text-green-600 text-xs font-semibold ml-1">Save {yearlyDiscount}%</span>
+              )}
             </button>
           </div>
         </div>
 
-        {/* Plan cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-6">
-          {PLANS.map(plan => (
-            <div key={plan.key}
-              className={`relative border-2 rounded-xl p-6 ${currentPlan === plan.key ? 'border-green-400' : plan.color}`}>
-              {plan.badge && currentPlan !== plan.key && (
-                <span className={`absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-1 rounded-full ${plan.badgeColor}`}>
-                  {plan.badge}
-                </span>
-              )}
-              {currentPlan === plan.key && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-1 rounded-full bg-green-500 text-white">
-                  Current Plan
-                </span>
-              )}
-              <div className="text-2xl mb-2">{plan.icon}</div>
-              <h3 className="text-lg font-bold text-gray-900">{plan.name}</h3>
-              <p className="text-3xl font-extrabold text-gray-900 mt-1">
-                {billingCycle === 'monthly' ? plan.monthly : plan.yearly}
-                <span className="text-sm font-normal text-gray-500">/{billingCycle === 'monthly' ? 'mo' : 'yr'}</span>
-              </p>
-              <ul className="mt-4 space-y-2">
-                {plan.features.map(f => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-gray-600">
-                    <span className="text-green-500">✓</span> {f}
-                  </li>
-                ))}
-              </ul>
-              <button
-                onClick={() => handleSelectPlan(plan)}
-                disabled={!!loading || currentPlan === plan.key}
-                className={`mt-5 w-full py-2.5 rounded-lg text-sm font-semibold transition-colors ${
-                  currentPlan === plan.key
-                    ? 'bg-gray-100 text-gray-400 cursor-default'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-60'
-                }`}>
-                {loading === plan.key ? 'Processing…' : currentPlan === plan.key ? 'Current Plan' : `Upgrade to ${plan.name}`}
-              </button>
+        {/* Plan cards — skeleton while loading */}
+        {planLoading ? (
+          <div className="p-6">
+            <div className="border-2 border-gray-200 rounded-xl p-6 animate-pulse">
+              <div className="h-5 bg-gray-200 rounded w-16 mb-3" />
+              <div className="h-8 bg-gray-200 rounded w-24 mb-6" />
+              {[1,2,3,4].map(i => <div key={i} className="h-3 bg-gray-100 rounded w-full mb-2" />)}
             </div>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-6">
+            {plans.map(plan => (
+              <div key={plan.key}
+                className={`relative border-2 rounded-xl p-6 ${currentPlan === plan.key ? 'border-green-400' : plan.color}`}>
+                {plan.badge && currentPlan !== plan.key && (
+                  <span className={`absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-1 rounded-full ${plan.badgeColor}`}>
+                    {plan.badge}
+                  </span>
+                )}
+                {currentPlan === plan.key && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-1 rounded-full bg-green-500 text-white">
+                    Current Plan
+                  </span>
+                )}
+                <div className="text-2xl mb-2">{plan.icon}</div>
+                <h3 className="text-lg font-bold text-gray-900">{plan.name}</h3>
+                <p className="text-3xl font-extrabold text-gray-900 mt-1">
+                  {billingCycle === 'monthly' ? plan.monthly : (hasYearly ? plan.yearly : plan.monthly)}
+                  <span className="text-sm font-normal text-gray-500">
+                    /{billingCycle === 'monthly' || !hasYearly ? 'mo' : 'yr'}
+                  </span>
+                </p>
+                <ul className="mt-4 space-y-2">
+                  {plan.features.map(f => (
+                    <li key={f} className="flex items-center gap-2 text-sm text-gray-600">
+                      <span className="text-green-500">✓</span> {f}
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  onClick={() => handleSelectPlan(plan)}
+                  disabled={!!loading || currentPlan === plan.key}
+                  className={`mt-5 w-full py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+                    currentPlan === plan.key
+                      ? 'bg-gray-100 text-gray-400 cursor-default'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-60'
+                  }`}>
+                  {loading === plan.key ? 'Processing…' : currentPlan === plan.key ? 'Current Plan' : `Upgrade to ${plan.name}`}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
         <p className="text-xs text-center text-gray-400 pb-5">
           Payments powered by Razorpay · Secured by 256-bit SSL
