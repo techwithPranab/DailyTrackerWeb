@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import { openCheckout } from '@/lib/razorpay';
 import toast from 'react-hot-toast';
+import { useAuth } from '@/context/AuthContext';
 
 // ── Static UI decoration (never changes based on plan config) ────────────────
 const PLAN_UI = {
@@ -40,6 +41,7 @@ const buildFeatures = (p) => {
 };
 
 export default function PlanModal({ currentPlan, onClose, onSuccess }) {
+  const { refreshUser } = useAuth();
   const [billingCycle, setBillingCycle] = useState('monthly');
   const [loading, setLoading]           = useState(null); // plan key being processed
   const [planData, setPlanData]         = useState(null); // from AppSettings API
@@ -114,6 +116,8 @@ export default function PlanModal({ currentPlan, onClose, onSuccess }) {
               razorpaySignature: response.razorpay_signature,
               subscriptionDbId:  order.subscriptionDbId
             });
+            // refresh user context so UI reflects new plan
+            await refreshUser();
             toast.success(verifyRes.data.message || 'Plan activated!');
             onSuccess?.();
             onClose();

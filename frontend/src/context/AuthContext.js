@@ -14,6 +14,19 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  const loadUser = async () => {
+    try {
+      const { data } = await api.get('/users/me');
+      setUser(data.data);
+      localStorage.setItem('user', JSON.stringify(data.data));
+    } catch (error) {
+      console.error('Failed to load user:', error);
+      logout();
+    }
+  };
+
+  const refreshUser = loadUser; // expose under more intuitive name
+
   useEffect(() => {
     // Check if user is logged in
     const token = localStorage.getItem('token');
@@ -25,17 +38,6 @@ export const AuthProvider = ({ children }) => {
     }
     setLoading(false);
   }, []);
-
-  const loadUser = async () => {
-    try {
-      const { data } = await api.get('/users/me');
-      setUser(data.data);
-      localStorage.setItem('user', JSON.stringify(data.data));
-    } catch (error) {
-      console.error('Failed to load user:', error);
-      logout();
-    }
-  };
 
   const register = async (userData) => {
     try {
@@ -100,6 +102,7 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         updateProfile,
+        refreshUser,
         isAuthenticated: !!user
       }}
     >
