@@ -13,6 +13,7 @@ const NAV = [
   { href: '/admin/transactions', icon: '🧾', label: 'Transactions' },
   { href: '/admin/revenue', icon: '📈', label: 'Revenue' },
   { href: '/admin/plan-features', icon: '🗂️', label: 'Plan Features' },
+  { href: '/admin/contact', icon: '📬', label: 'Contact Messages' },
   { href: '/admin/settings', icon: '⚙️', label: 'App Settings' },
 ];
 

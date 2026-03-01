@@ -18,6 +18,12 @@ const {
   adminUpdateSubscription,
   getTransactions
 } = require('../controllers/adminController');
+const {
+  getContactMessages,
+  getContactMessageById,
+  updateContactMessage,
+  deleteContactMessage,
+} = require('../controllers/contactController');
 
 // Public admin login
 router.post('/login', adminLogin);
@@ -45,5 +51,11 @@ router.get('/subscriptions',     getSubscriptions);
 router.put('/subscriptions/:id', adminUpdateSubscription);
 router.get('/revenue',           getRevenueStats);
 router.get('/transactions',      getTransactions);
+
+// Contact messages
+router.get('/contact',      getContactMessages);
+router.get('/contact/:id',  getContactMessageById);
+router.put('/contact/:id',  updateContactMessage);
+router.delete('/contact/:id', deleteContactMessage);
 
 module.exports = router;

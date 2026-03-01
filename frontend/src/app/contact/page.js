@@ -2,20 +2,52 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 
 export default function ContactSupportPage() {
-  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
-  const [submitted, setSubmitted] = useState(false);
+  const { user } = useAuth();
+
+  const [form, setForm] = useState({
+    name:    user?.name  || '',
+    email:   user?.email || '',
+    subject: '',
+    message: '',
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted,  setSubmitted]  = useState(false);
+  const [error,      setError]      = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // In a real app, this would call an API
-    setSubmitted(true);
+    setSubmitting(true);
+    setError('');
+    try {
+      const base    = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const token   = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res  = await fetch(`${base}/contact`, {
+        method:  'POST',
+        headers,
+        body:    JSON.stringify(form),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Failed to send message. Please try again.');
+      }
+      setSubmitted(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -41,7 +73,10 @@ export default function ContactSupportPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
-                onClick={() => { setSubmitted(false); setForm({ name: '', email: '', subject: '', message: '' }); }}
+                onClick={() => {
+                  setSubmitted(false);
+                  setForm({ name: user?.name || '', email: user?.email || '', subject: '', message: '' });
+                }}
                 className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm"
               >
                 Send Another
@@ -84,6 +119,13 @@ export default function ContactSupportPage() {
             {/* Form */}
             <div className="md:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8">
               <h2 className="text-xl font-bold text-gray-900 mb-6">Send us a message</h2>
+
+              {error && (
+                <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
+                  ⚠️ {error}
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
@@ -137,9 +179,10 @@ export default function ContactSupportPage() {
                 </div>
                 <button
                   type="submit"
-                  className="w-full py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium text-sm"
+                  disabled={submitting}
+                  className="w-full py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium text-sm disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                 >
-                  Send Message
+                  {submitting ? 'Sending…' : 'Send Message'}
                 </button>
               </form>
             </div>
