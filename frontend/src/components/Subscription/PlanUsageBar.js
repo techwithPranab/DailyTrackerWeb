@@ -15,7 +15,7 @@ export default function PlanUsageBar({ label, current, max, onUpgrade, className
   if (max === -1) {
     return (
       <div className={`text-xs text-slate-400 ${className}`}>
-        <span className="font-medium text-slate-300">{label}:</span>{' '}
+        <span className="font-medium text-slate-900">{label}:</span>{' '}
         <span className="text-emerald-400">Unlimited</span>
       </div>
     );
@@ -25,7 +25,7 @@ export default function PlanUsageBar({ label, current, max, onUpgrade, className
   if (max === 0) {
     return (
       <div className={`text-xs text-slate-400 flex items-center gap-2 ${className}`}>
-        <span className="font-medium text-slate-300">{label}:</span>
+        <span className="font-medium text-slate-900">{label}:</span>
         <span className="text-rose-400">Not available on your plan</span>
         {onUpgrade && (
           <button
@@ -53,12 +53,12 @@ export default function PlanUsageBar({ label, current, max, onUpgrade, className
     ? 'text-rose-400'
     : isWarning
     ? 'text-amber-400'
-    : 'text-slate-300';
+    : 'text-slate-900';
 
   return (
     <div className={`space-y-1 ${className}`}>
       <div className="flex items-center justify-between text-xs">
-        <span className="font-medium text-slate-300">{label}</span>
+        <span className="font-medium text-slate-900">{label}</span>
         <span className={textColor}>
           {current} / {max}
           {onUpgrade && isDanger && (
@@ -76,7 +76,7 @@ export default function PlanUsageBar({ label, current, max, onUpgrade, className
       </div>
 
       {/* Track */}
-      <div className="h-1.5 w-full rounded-full bg-slate-700 overflow-hidden">
+      <div className="h-1.5 w-full rounded-full text-slate-900 overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-300 ${barColor}`}
           style={{ width: `${percent}%` }}
