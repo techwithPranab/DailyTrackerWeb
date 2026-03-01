@@ -104,13 +104,6 @@ export default function AdminRevenuePage() {
             sub="Active paid users"
             color="bg-indigo-100 text-indigo-700"
           />
-          <StatCard
-            icon="🏢"
-            label="Enterprise"
-            value={stats?.enterpriseCount ?? '—'}
-            sub="Active paid users"
-            color="bg-purple-100 text-purple-700"
-          />
         </div>
 
         {/* Active paid users callout */}
@@ -119,7 +112,7 @@ export default function AdminRevenuePage() {
             <span className="text-3xl">🎯</span>
             <div>
               <p className="font-bold text-green-800 text-lg">{stats.activePaidUsers} active paid users</p>
-              <p className="text-green-600 text-sm">Combined Pro + Enterprise active subscriptions</p>
+              <p className="text-green-600 text-sm">Active Pro subscriptions</p>
             </div>
           </div>
         )}

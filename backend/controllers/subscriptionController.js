@@ -35,22 +35,6 @@ const PLANS = {
     ],
     limits: { activities: -1, reminders: -1, recurring: true, milestones: true }
   },
-  enterprise: {
-    name: 'Enterprise',
-    price: { monthly: 99900, yearly: 999900 },  // paise
-    currency: 'INR',
-    features: [
-      'Everything in Pro',
-      'Unlimited team members',
-      'Admin panel access',
-      'Custom integrations',
-      'Dedicated support',
-      'SLA guarantee',
-      'Data export (CSV + JSON)',
-      'Priority onboarding'
-    ],
-    limits: { activities: -1, reminders: -1, recurring: true, milestones: true }
-  }
 };
 
 // ─── GET /api/subscriptions/plans ─────────────────────────────────────────────

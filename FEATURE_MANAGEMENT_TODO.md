@@ -11,19 +11,18 @@ single source of truth (`PLAN_FEATURES` config) shared across the stack.
 **Goal:** One config file defines every plan's limits; middleware enforces them on every route.
 
 ### 1.1 `backend/config/planFeatures.js` — SINGLE SOURCE OF TRUTH
-- [ ] Define `PLAN_FEATURES` object for `free`, `pro`, `enterprise`
-  - `activities`    : max count (10 / -1 / -1)
-  - `milestones`    : max count (0 / -1 / -1)  ← Free = no milestones
-  - `reminders`     : max per activity (1 / -1 / -1)
-  - `utilities`     : max count (2 / 20 / -1)
-  - `recurringActivities` : bool (false / true / true)
-  - `subActivities` : bool (false / true / true)
-  - `documentUpload`: bool (false / true / true)
-  - `analytics`     : bool (false / true / true)
-  - `dataExport`    : bool (false / true / true)
-  - `teamWorkspace` : bool (false / false / true)
+- [ ] Define `PLAN_FEATURES` object for `free`, `pro`
+  - `activities`    : max count (10 / -1)
+  - `milestones`    : max count (0 / -1)  ← Free = no milestones
+  - `reminders`     : max per activity (1 / -1)
+  - `utilities`     : max count (2 / 20)
+  - `recurringActivities` : bool (false / true)
+  - `subActivities` : bool (false / true)
+  - `documentUpload`: bool (false / true)
+  - `analytics`     : bool (false / true)
+  - `dataExport`    : bool (false / true)
 - [ ] Export helper `getPlanFeatures(plan)` and `isFeatureAllowed(plan, feature)`
-- [ ] Export `PLAN_RANK = { free:0, pro:1, enterprise:2 }` for comparison
+- [ ] Export `PLAN_RANK = { free:0, pro:1 }` for comparison
 
 ### 1.2 `backend/middleware/planLimit.js` — EXPAND
 - [ ] Replace hard-coded PLAN_LIMITS with import from `planFeatures.js`
@@ -64,11 +63,11 @@ single source of truth (`PLAN_FEATURES` config) shared across the stack.
 - [ ] Returns:
   ```js
   {
-    plan,           // 'free' | 'pro' | 'enterprise'
+    plan,           // 'free' | 'pro'
     can,            // { activities, milestones, reminders, utilities, recurring, ... }
     limits,         // { activities: 10, utilities: 2, ... } or -1
     isAllowed(feature),   // boolean
-    requiresPlan(feature), // 'pro' | 'enterprise' | null
+    requiresPlan(feature), // 'pro' | null
   }
   ```
 - [ ] Memoised with `useMemo`
@@ -115,7 +114,7 @@ single source of truth (`PLAN_FEATURES` config) shared across the stack.
 - [ ] Multi-reminder input gated behind Pro
 
 ### 4.4 Utilities page (`/utilities`)
-- [ ] Show `PlanUsageBar` for utility count (Free: 2, Pro: 20, Enterprise: unlimited)
+- [ ] Show `PlanUsageBar` for utility count (Free: 2, Pro: 20)
 - [ ] "Add Utility" disabled at limit with upgrade prompt
 - [ ] Document upload button on utility detail gated behind Pro (`PlanGate feature="documentUpload"`)
 

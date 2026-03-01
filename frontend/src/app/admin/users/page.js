@@ -8,7 +8,6 @@ import toast from 'react-hot-toast';
 const PLAN_BADGE = {
   free: 'bg-gray-100 text-gray-300',
   pro: 'bg-indigo-900/60 text-indigo-300',
-  enterprise: 'bg-purple-900/60 text-purple-300',
 };
 
 const STATUS_BADGE = {
@@ -91,7 +90,6 @@ function EditUserModal({ user, onClose, onSave }) {
               >
                 <option value="free">Free</option>
                 <option value="pro">Pro</option>
-                <option value="enterprise">Enterprise</option>
               </select>
             </div>
           </div>
@@ -211,7 +209,6 @@ export default function AdminUsersPage() {
             <option value="">All Plans</option>
             <option value="free">Free</option>
             <option value="pro">Pro</option>
-            <option value="enterprise">Enterprise</option>
           </select>
           <select
             value={statusFilter}

@@ -26,25 +26,6 @@ const PLANS = [
       'Advanced analytics',
       'Priority support'
     ]
-  },
-  {
-    key: 'enterprise',
-    name: 'Enterprise',
-    icon: '🏢',
-    monthly: '₹999',
-    yearly: '₹9,999',
-    monthlyPaise: 99900,
-    yearlyPaise: 999900,
-    color: 'border-purple-500 ring-purple-500',
-    badge: null,
-    features: [
-      'Everything in Pro',
-      'Unlimited team members',
-      'Admin panel access',
-      'Custom integrations',
-      'Dedicated support',
-      'SLA guarantee'
-    ]
   }
 ];
 

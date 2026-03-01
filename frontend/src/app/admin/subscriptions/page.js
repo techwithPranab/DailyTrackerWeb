@@ -9,7 +9,6 @@ import toast from 'react-hot-toast';
 const PLAN_COLORS = {
   free:       { bg: 'bg-gray-100',       text: 'text-gray-600',    border: 'border-gray-300' },
   pro:        { bg: 'bg-blue-100',        text: 'text-blue-700',    border: 'border-blue-300' },
-  enterprise: { bg: 'bg-purple-100',      text: 'text-purple-700',  border: 'border-purple-300' },
 };
 
 const STATUS_COLORS = {
@@ -102,17 +101,13 @@ export default function AdminSubscriptionsPage() {
             <p className="text-xs text-gray-400 mb-1">Pro Subscribers</p>
             <p className="text-2xl font-extrabold text-indigo-600">{planCounts.proCount ?? '—'}</p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-xl p-5">
-            <p className="text-xs text-gray-400 mb-1">Enterprise</p>
-            <p className="text-2xl font-extrabold text-purple-600">{planCounts.enterpriseCount ?? '—'}</p>
-          </div>
         </div>
 
         {/* Filters */}
         <div className="flex flex-wrap gap-2 items-center">
           {/* Plan filter */}
           <div className="flex gap-1.5">
-            {['', 'free', 'pro', 'enterprise'].map(f => (
+            {['', 'free', 'pro'].map(f => (
               <button key={f}
                 onClick={() => { setPlanFilter(f); setPage(1); }}
                 className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
@@ -204,7 +199,6 @@ export default function AdminSubscriptionsPage() {
                             >
                               <option value="free">Free</option>
                               <option value="pro">Pro</option>
-                              <option value="enterprise">Enterprise</option>
                             </select>
                           ) : (
                             <span className={`text-xs px-2.5 py-1 rounded-full font-semibold capitalize border ${pc.bg} ${pc.text} ${pc.border}`}>

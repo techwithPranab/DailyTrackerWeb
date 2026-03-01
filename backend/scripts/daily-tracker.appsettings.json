@@ -1,0 +1,57 @@
+[{
+  "_id": "global",
+  "appName": "TrakIO",
+  "appTagline": "Track Everything. Achieve Anything.",
+  "appLogoUrl": "",
+  "supportEmail": "support@trakio.in",
+  "privacyEmail": "privacy@trakio.in",
+  "websiteUrl": "https://trakio.in",
+  "twitterHandle": "@trakio_in",
+  "plans": {
+    "free": {
+      "name": "Free",
+      "price": 0,
+      "maxActivities": 10,
+      "maxMilestones": 0,
+      "maxReminders": 1,
+      "maxUtilities": 10,
+      "recurringActivities": true,
+      "subActivities": true,
+      "documentUpload": false,
+      "analytics": false,
+      "dataExport": false,
+      "prioritySupport": false
+    },
+    "pro": {
+      "name": "Pro",
+      "price": 199,
+      "maxActivities": -1,
+      "maxMilestones": -1,
+      "maxReminders": -1,
+      "maxUtilities": -1,
+      "recurringActivities": true,
+      "subActivities": true,
+      "documentUpload": true,
+      "analytics": true,
+      "dataExport": true,
+      "prioritySupport": true
+    }
+  },
+  "features": {
+    "registrationEnabled": true,
+    "maintenanceMode": false,
+    "maintenanceMessage": ""
+  },
+  "announcement": {
+    "enabled": false,
+    "message": "",
+    "type": "info"
+  },
+  "createdAt": {
+    "$date": "2026-02-28T19:38:07.195Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-28T19:38:07.195Z"
+  },
+  "__v": 0
+}]

@@ -26,7 +26,7 @@ export default function UtilitiesPage() {
   const [showPlanModal, setShowPlanModal] = useState(false);
 
   const { plan, features, isLimitReached, usagePercent } = usePlanFeatures();
-  const utilityLimit = features.utilities;   // 2 (free) | 20 (pro) | -1 (enterprise)
+  const utilityLimit = features.utilities;   // 2 (free) | 20 (pro)
 
   // Unfiltered count — use a separate state to track total regardless of filters
   const [totalCount, setTotalCount] = useState(0);

@@ -14,7 +14,6 @@ import toast from 'react-hot-toast';
 const PLAN_DETAILS = {
   free:       { icon: '🆓', label: 'Free',       price: '₹0/mo',   color: 'border-gray-200' },
   pro:        { icon: '⭐', label: 'Pro',        price: '₹199/mo',  color: 'border-blue-300' },
-  enterprise: { icon: '🏢', label: 'Enterprise', price: '₹999/mo',  color: 'border-purple-300' }
 };
 
 export default function SubscriptionPage() {
@@ -153,13 +152,6 @@ export default function SubscriptionPage() {
           {currentPlan === 'pro' && (
             <ul className="space-y-1.5 text-sm text-gray-600">
               {['Unlimited activities', 'Unlimited reminders', 'Recurring activities (daily, weekly, monthly)', 'Milestone tracking', 'Home Utility Tracker', 'Advanced analytics', 'Priority support'].map(f => (
-                <li key={f} className="flex gap-2"><span className="text-green-500">✓</span> {f}</li>
-              ))}
-            </ul>
-          )}
-          {currentPlan === 'enterprise' && (
-            <ul className="space-y-1.5 text-sm text-gray-600">
-              {['Everything in Pro', 'Unlimited team members', 'Admin panel access', 'Custom integrations', 'Dedicated support', 'SLA guarantee'].map(f => (
                 <li key={f} className="flex gap-2"><span className="text-green-500">✓</span> {f}</li>
               ))}
             </ul>

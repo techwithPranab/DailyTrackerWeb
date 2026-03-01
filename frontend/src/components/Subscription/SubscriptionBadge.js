@@ -3,7 +3,6 @@
 const PLAN_STYLES = {
   free:       { bg: 'bg-gray-100',    text: 'text-gray-600',    label: 'Free' },
   pro:        { bg: 'bg-blue-100',    text: 'text-blue-700',    label: 'Pro ⭐' },
-  enterprise: { bg: 'bg-purple-100',  text: 'text-purple-700',  label: 'Enterprise 🏢' }
 };
 
 export default function SubscriptionBadge({ plan = 'free', className = '' }) {

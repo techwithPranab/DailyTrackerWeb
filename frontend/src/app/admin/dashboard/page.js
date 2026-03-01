@@ -61,7 +61,7 @@ export default function AdminDashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <StatCard icon="👥" label="Total Users" value={stats?.users?.total} sub={`+${stats?.users?.newThisMonth} this month`} color="bg-blue-900/50 text-blue-300" />
           <StatCard icon="✅" label="Active Users" value={stats?.users?.active} sub="active accounts" color="bg-green-900/50 text-green-300" />
-          <StatCard icon="💳" label="Pro Subscribers" value={stats?.subscriptions?.pro} sub={`${stats?.subscriptions?.enterprise} enterprise`} color="bg-indigo-900/50 text-indigo-300" />
+          <StatCard icon="💳" label="Pro Subscribers" value={stats?.subscriptions?.pro} sub="Active paid users" color="bg-indigo-900/50 text-indigo-300" />
           <StatCard icon="📝" label="Total Activities" value={stats?.content?.activities} sub={`${stats?.content?.milestones} milestones`} color="bg-purple-900/50 text-purple-300" />
         </div>
 
@@ -101,7 +101,6 @@ export default function AdminDashboardPage() {
               {[
                 { label: 'Free', count: stats.subscriptions.free, total: stats.users.total, color: 'bg-gray-600' },
                 { label: 'Pro', count: stats.subscriptions.pro, total: stats.users.total, color: 'bg-indigo-500' },
-                { label: 'Enterprise', count: stats.subscriptions.enterprise, total: stats.users.total, color: 'bg-purple-500' },
               ].map(row => {
                 const pct = stats.users.total ? Math.round((row.count / stats.users.total) * 100) : 0;
                 return (
@@ -143,7 +142,6 @@ export default function AdminDashboardPage() {
                   </div>
                   <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${
                     u.subscription?.plan === 'pro' ? 'bg-indigo-900/60 text-indigo-300' :
-                    u.subscription?.plan === 'enterprise' ? 'bg-purple-900/60 text-purple-300' :
                     'bg-gray-100 text-gray-400'
                   }`}>
                     {u.subscription?.plan || 'free'}

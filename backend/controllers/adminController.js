@@ -399,9 +399,8 @@ async function getRevenueStats(req, res) {
     });
 
     // Plan counts for active subs
-    const [proCount, enterpriseCount] = await Promise.all([
-      Subscription.countDocuments({ status: 'active', plan: 'pro' }),
-      Subscription.countDocuments({ status: 'active', plan: 'enterprise' })
+    const [proCount] = await Promise.all([
+      Subscription.countDocuments({ status: 'active', plan: 'pro' })
     ]);
 
     // Build sorted monthly array for chart
@@ -415,9 +414,8 @@ async function getRevenueStats(req, res) {
       data: {
         mrr,
         totalRevenue,
-        activePaidUsers: proCount + enterpriseCount,
+        activePaidUsers: proCount,
         proCount,
-        enterpriseCount,
         monthlyBreakdown: months
       }
     });

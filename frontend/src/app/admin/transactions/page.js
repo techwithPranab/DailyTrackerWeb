@@ -11,7 +11,6 @@ import toast from 'react-hot-toast';
 const PLAN_BADGE = {
   free:       'bg-gray-100 text-gray-600',
   pro:        'bg-blue-100 text-blue-700',
-  enterprise: 'bg-purple-100 text-purple-700',
 };
 
 export default function AdminTransactionsPage() {
