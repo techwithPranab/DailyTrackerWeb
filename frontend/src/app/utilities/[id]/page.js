@@ -238,52 +238,117 @@ export default function UtilityDetailPage() {
           {sorted.length === 0 ? (
             <p className="text-sm text-gray-400 text-center py-8 italic">No service entries yet.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-xs text-gray-500 border-b border-gray-100">
-                    <th className="text-left pb-2 pr-3">Date</th>
-                    <th className="text-left pb-2 pr-3">Type</th>
-                    <th className="text-left pb-2 pr-3">Status</th>
-                    <th className="text-left pb-2 pr-3">Cost</th>
-                    <th className="text-left pb-2 pr-3">Technician</th>
-                    <th className="text-right pb-2">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sorted.map(s => (
-                    <tr key={s._id} className="border-b border-gray-50 hover:bg-gray-50">
-                      <td className="py-2 pr-3 whitespace-nowrap">
-                        {format(new Date(s.scheduledDate), 'MMM d, yyyy')}
-                        {s.completedDate && (
-                          <div className="text-xs text-gray-400">Done: {format(new Date(s.completedDate), 'MMM d, yyyy')}</div>
-                        )}
-                      </td>
-                      <td className="py-2 pr-3 font-medium text-gray-800">{s.serviceType}</td>
-                      <td className="py-2 pr-3">
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_BADGE[s.status]}`}>
-                          {s.status}
-                        </span>
-                      </td>
-                      <td className="py-2 pr-3 text-gray-600">
-                        {s.cost ? `₹${Number(s.cost).toLocaleString('en-IN')}` : '—'}
-                      </td>
-                      <td className="py-2 pr-3 text-gray-600">{s.technician || '—'}</td>
-                      <td className="py-2 text-right space-x-1 whitespace-nowrap">
-                        {s.status === 'Upcoming' && (
-                          <button onClick={() => handleCompleteService(s)}
-                            className="text-xs text-green-600 hover:underline">✔ Done</button>
-                        )}
-                        <button onClick={() => openEditService(s)}
-                          className="text-xs text-blue-600 hover:underline">Edit</button>
-                        <button onClick={() => handleDeleteService(s._id)}
-                          className="text-xs text-red-500 hover:underline">Del</button>
-                      </td>
+            <>
+              {/* ── Desktop table (md+) ── */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-xs text-gray-500 border-b border-gray-100">
+                      <th className="text-left pb-2 pr-3">Date</th>
+                      <th className="text-left pb-2 pr-3">Type</th>
+                      <th className="text-left pb-2 pr-3">Status</th>
+                      <th className="text-left pb-2 pr-3">Cost</th>
+                      <th className="text-left pb-2 pr-3">Technician</th>
+                      <th className="text-right pb-2">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {sorted.map(s => (
+                      <tr key={s._id} className="border-b border-gray-50 hover:bg-gray-50">
+                        <td className="py-2 pr-3 whitespace-nowrap">
+                          {format(new Date(s.scheduledDate), 'MMM d, yyyy')}
+                          {s.completedDate && (
+                            <div className="text-xs text-gray-400">Done: {format(new Date(s.completedDate), 'MMM d, yyyy')}</div>
+                          )}
+                        </td>
+                        <td className="py-2 pr-3 font-medium text-gray-800">{s.serviceType}</td>
+                        <td className="py-2 pr-3">
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_BADGE[s.status]}`}>
+                            {s.status}
+                          </span>
+                        </td>
+                        <td className="py-2 pr-3 text-gray-600">
+                          {s.cost ? `₹${Number(s.cost).toLocaleString('en-IN')}` : '—'}
+                        </td>
+                        <td className="py-2 pr-3 text-gray-600">{s.technician || '—'}</td>
+                        <td className="py-2 text-right whitespace-nowrap">
+                          <div className="inline-flex items-center gap-2">
+                            {s.status === 'Upcoming' && (
+                              <button onClick={() => handleCompleteService(s)}
+                                className="text-xs font-semibold text-green-600 hover:text-green-800 px-2 py-1 rounded hover:bg-green-50 transition-colors">
+                                ✔ Done
+                              </button>
+                            )}
+                            <button onClick={() => openEditService(s)}
+                              className="text-xs font-semibold text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50 transition-colors">
+                              Edit
+                            </button>
+                            <button onClick={() => handleDeleteService(s._id)}
+                              className="text-xs font-semibold text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 transition-colors">
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* ── Mobile cards (below md) ── */}
+              <div className="md:hidden space-y-3">
+                {sorted.map(s => (
+                  <div key={s._id} className="border border-gray-100 rounded-xl p-4 bg-gray-50 hover:bg-white transition-colors">
+                    {/* Row 1: Type + Status badge */}
+                    <div className="flex items-center justify-between mb-2 gap-2">
+                      <p className="font-semibold text-gray-900 text-sm">{s.serviceType}</p>
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${STATUS_BADGE[s.status]}`}>
+                        {s.status}
+                      </span>
+                    </div>
+
+                    {/* Row 2: Dates */}
+                    <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-gray-500 mb-2">
+                      <span>📅 {format(new Date(s.scheduledDate), 'MMM d, yyyy')}</span>
+                      {s.completedDate && (
+                        <span>✅ Done: {format(new Date(s.completedDate), 'MMM d, yyyy')}</span>
+                      )}
+                    </div>
+
+                    {/* Row 3: Cost + Technician */}
+                    <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-gray-500 mb-3">
+                      {s.cost && <span>💰 ₹{Number(s.cost).toLocaleString('en-IN')}</span>}
+                      {s.technician && <span>👤 {s.technician}</span>}
+                      {s.notes && <span className="text-gray-400 italic truncate">"{s.notes}"</span>}
+                    </div>
+
+                    {/* Row 4: Action buttons — always visible */}
+                    <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                      {s.status === 'Upcoming' && (
+                        <button
+                          onClick={() => handleCompleteService(s)}
+                          className="flex-1 text-xs font-semibold text-white bg-green-500 hover:bg-green-600 px-3 py-2 rounded-lg transition-colors"
+                        >
+                          ✔ Mark Done
+                        </button>
+                      )}
+                      <button
+                        onClick={() => openEditService(s)}
+                        className="flex-1 text-xs font-semibold text-blue-600 border border-blue-200 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
+                      >
+                        ✏️ Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteService(s._id)}
+                        className="flex-1 text-xs font-semibold text-red-500 border border-red-200 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors"
+                      >
+                        🗑 Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
 
