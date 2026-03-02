@@ -24,6 +24,11 @@ const subActivitySchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  completionValue: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
   completedAt: {
     type: Date,
     default: null

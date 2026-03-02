@@ -133,6 +133,7 @@ export default function ActivityCard({ activity, onUpdate }) {
           <SubActivityList
             activityId={activity._id}
             activityName={activity.name}
+            activityMetric={activity.metric}
           />
         </div>
       )}

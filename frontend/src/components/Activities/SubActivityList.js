@@ -30,21 +30,48 @@ function ProgressBar({ completed, total }) {
   );
 }
 
-function SubActivityRow({ sub, onUpdated }) {
-  const [status, setStatus]   = useState(sub.status);
-  const [notes, setNotes]     = useState(sub.notes || '');
-  const [editing, setEditing] = useState(false);
-  const [saving,  setSaving]  = useState(false);
+function SubActivityRow({ sub, onUpdated, activityMetric }) {
+  const [status,           setStatus]           = useState(sub.status);
+  const [notes,            setNotes]             = useState(sub.notes || '');
+  const [editing,          setEditing]           = useState(false);
+  const [saving,           setSaving]            = useState(false);
+  const [completionValue,  setCompletionValue]   = useState(sub.completionValue ?? '');
+  const [editingValue,     setEditingValue]      = useState(false);
+
+  const metric = activityMetric || 'value';
 
   const saveStatus = async (newStatus) => {
     setSaving(true);
     try {
-      const { data } = await api.put(`/subactivities/${sub._id}`, { status: newStatus });
+      const payload = { status: newStatus };
+      // Carry current completionValue when marking Completed
+      if (newStatus === 'Completed') {
+        payload.completionValue = completionValue !== '' ? Number(completionValue) : 0;
+      }
+      const { data } = await api.put(`/subactivities/${sub._id}`, payload);
       setStatus(data.data.status);
       toast.success('Status updated');
+      if (newStatus === 'Completed') setEditingValue(true);
       onUpdated();
     } catch {
       toast.error('Failed to update status');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const saveValue = async () => {
+    setSaving(true);
+    try {
+      await api.put(`/subactivities/${sub._id}`, {
+        status: 'Completed',
+        completionValue: completionValue !== '' ? Number(completionValue) : 0
+      });
+      toast.success('Value saved');
+      setEditingValue(false);
+      onUpdated();
+    } catch {
+      toast.error('Failed to save value');
     } finally {
       setSaving(false);
     }
@@ -88,6 +115,43 @@ function SubActivityRow({ sub, onUpdated }) {
             ))}
           </select>
         </div>
+      </td>
+
+      {/* Value (shown when Completed) */}
+      <td className="py-2.5 px-3 whitespace-nowrap">
+        {status === 'Completed' ? (
+          editingValue ? (
+            <div className="flex gap-1 items-center">
+              <input
+                type="number"
+                min="0"
+                value={completionValue}
+                onChange={e => setCompletionValue(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && saveValue()}
+                className="w-20 text-xs border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                placeholder="0"
+                autoFocus
+              />
+              <span className="text-xs text-gray-500">{metric}</span>
+              <button onClick={saveValue} disabled={saving}
+                className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 disabled:opacity-50">
+                {saving ? '…' : 'OK'}
+              </button>
+              <button onClick={() => setEditingValue(false)} className="text-xs text-gray-400 hover:text-gray-700">✕</button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setEditingValue(true)}
+              className="text-xs text-blue-600 hover:underline"
+            >
+              {completionValue !== '' && completionValue !== 0
+                ? `${completionValue} ${metric}`
+                : <span className="italic text-gray-300">+ add {metric}</span>}
+            </button>
+          )
+        ) : (
+          <span className="text-xs text-gray-300">—</span>
+        )}
       </td>
 
       {/* Notes */}
@@ -135,7 +199,7 @@ function SubActivityRow({ sub, onUpdated }) {
   );
 }
 
-export default function SubActivityList({ activityId, activityName }) {
+export default function SubActivityList({ activityId, activityName, activityMetric }) {
   const [data,    setData]    = useState(null);
   const [loading, setLoading] = useState(true);
   const [filter,  setFilter]  = useState('all'); // all | Not Started | In Progress | Completed
@@ -217,13 +281,14 @@ export default function SubActivityList({ activityId, activityName }) {
               <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
                 <th className="text-left px-3 py-2">Date</th>
                 <th className="text-left px-3 py-2">Status</th>
+                <th className="text-left px-3 py-2">{activityMetric || 'Value'}</th>
                 <th className="text-left px-3 py-2">Notes</th>
                 <th className="text-left px-3 py-2 hidden sm:table-cell">Completed At</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map(sub => (
-                <SubActivityRow key={sub._id} sub={sub} onUpdated={load} />
+                <SubActivityRow key={sub._id} sub={sub} onUpdated={load} activityMetric={activityMetric} />
               ))}
             </tbody>
           </table>

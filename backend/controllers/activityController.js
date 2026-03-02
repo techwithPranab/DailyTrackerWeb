@@ -1,6 +1,7 @@
 const Activity = require('../models/Activity');
 const SubActivity = require('../models/SubActivity');
 const syncSubActivities = require('../utils/syncSubActivities');
+const { recalculateMilestoneProgress } = require('./milestoneController');
 
 // ─── Helper: generate all scheduled dates for an activity ────────────────────
 const generateScheduledDates = (data) => {
@@ -214,6 +215,9 @@ const updateActivity = async (req, res) => {
 
     // Re-sync sub-activities to match updated scheduled dates
     await syncSubActivities(activity);
+
+    // Auto-update milestones linked to this activity
+    await recalculateMilestoneProgress(activity._id);
 
     res.json({
       success: true,

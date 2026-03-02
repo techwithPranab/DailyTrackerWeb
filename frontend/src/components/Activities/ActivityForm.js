@@ -9,7 +9,8 @@ export default function ActivityForm({ onSuccess, onCancel, activity }) {
     name: '',
     description: '',
     startDate: '',
-    duration: 0,
+    value: 0,
+    metric: 'Min',
     priority: 'Medium',
     category: 'Other',
     status: 'Not Started',
@@ -32,7 +33,8 @@ export default function ActivityForm({ onSuccess, onCancel, activity }) {
         name: activity.name || '',
         description: activity.description || '',
         startDate,
-        duration: activity.duration ?? 0,
+        value: activity.value ?? 0,
+        metric: activity.metric || 'Min',
         priority: activity.priority || 'Medium',
         category: activity.category || 'Other',
         status: activity.status || 'Not Started',
@@ -146,7 +148,7 @@ export default function ActivityForm({ onSuccess, onCancel, activity }) {
         />
       </div>
 
-      {/* Start Date + Duration */}
+      {/* Start Date + Value + Metric */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700">Start Date *</label>
@@ -160,16 +162,28 @@ export default function ActivityForm({ onSuccess, onCancel, activity }) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Duration (minutes)</label>
-          <input
-            type="number"
-            name="duration"
-            min="0"
-            value={formData.duration}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border text-gray-900"
-            placeholder="0"
-          />
+          <label className="block text-sm font-medium text-gray-700">Default Value &amp; Unit</label>
+          <div className="mt-1 flex gap-2">
+            <input
+              type="number"
+              name="value"
+              min="0"
+              value={formData.value}
+              onChange={handleChange}
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border text-gray-900"
+              placeholder="0"
+            />
+            <select
+              name="metric"
+              value={formData.metric}
+              onChange={handleChange}
+              className="block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-2 py-2 border text-gray-900"
+            >
+              {['Min','Hr','Km','Mi','L','ml','lb','kg','reps','steps','pages','sessions','custom'].map(m => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 

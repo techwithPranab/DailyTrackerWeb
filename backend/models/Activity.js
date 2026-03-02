@@ -22,6 +22,17 @@ const activitySchema = new mongoose.Schema({
   startTime: {
     type: Date
   },
+  value: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  metric: {
+    type: String,
+    enum: ['Min', 'Hr', 'Km', 'Mi', 'L', 'ml', 'lb', 'kg', 'reps', 'steps', 'pages', 'sessions', 'custom'],
+    default: 'Min'
+  },
+  // Legacy field kept for backward-compat (mirrors value)
   duration: {
     type: Number,
     default: 0
@@ -90,6 +101,10 @@ const activitySchema = new mongoose.Schema({
     },
     completedAt: {
       type: Date
+    },
+    value: {
+      type: Number,
+      default: 0
     }
   }]
 }, {

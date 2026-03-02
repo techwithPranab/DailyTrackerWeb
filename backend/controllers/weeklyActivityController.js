@@ -1,4 +1,5 @@
 const Activity = require('../models/Activity');
+const { recalculateMilestoneProgress } = require('./milestoneController');
 const { startOfWeek, endOfWeek, addDays, startOfDay, endOfDay, isSameDay } = require('date-fns');
 
 // @desc    Get weekly activity schedule
@@ -115,7 +116,6 @@ const getWeeklyActivities = async (req, res) => {
 // @access  Private
 const markActivityComplete = async (req, res) => {
   try {
-    const { date } = req.body; // The date for which to mark completion
     const activity = await Activity.findById(req.params.id);
 
     if (!activity) {
@@ -133,8 +133,10 @@ const markActivityComplete = async (req, res) => {
       });
     }
 
+    const { date, value } = req.body;
     const completionDate = date ? new Date(date) : new Date();
     const normalizedDate = startOfDay(completionDate);
+    const numericValue = value !== undefined ? Number(value) || 0 : 0;
 
     if (activity.isRecurring) {
       // For recurring activities, update weekly completions
@@ -145,11 +147,13 @@ const markActivityComplete = async (req, res) => {
       if (existingCompletion) {
         existingCompletion.completed = true;
         existingCompletion.completedAt = new Date();
+        existingCompletion.value = numericValue;
       } else {
         activity.weeklyCompletions.push({
           date: normalizedDate,
           completed: true,
-          completedAt: new Date()
+          completedAt: new Date(),
+          value: numericValue
         });
       }
     } else {
@@ -159,6 +163,9 @@ const markActivityComplete = async (req, res) => {
     }
 
     await activity.save();
+
+    // Auto-update any milestones linked to this activity
+    await recalculateMilestoneProgress(activity._id);
 
     res.json({
       success: true,
@@ -215,6 +222,9 @@ const unmarkActivityComplete = async (req, res) => {
     }
 
     await activity.save();
+
+    // Auto-update any milestones linked to this activity
+    await recalculateMilestoneProgress(activity._id);
 
     res.json({
       success: true,

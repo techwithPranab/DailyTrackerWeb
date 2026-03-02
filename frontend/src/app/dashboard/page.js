@@ -22,21 +22,53 @@ const STATUS_COLORS = {
 
 // ── Compact today-sub-activity card ──────────────────────────────────────────
 function TodaySubActivityCard({ sub, onUpdated }) {
-  const [status,  setStatus]  = useState(sub.status);
-  const [notes,   setNotes]   = useState(sub.notes || '');
-  const [editing, setEditing] = useState(false);
-  const [saving,  setSaving]  = useState(false);
+  const [status,           setStatus]           = useState(sub.status);
+  const [notes,            setNotes]            = useState(sub.notes || '');
+  const [editing,          setEditing]          = useState(false);
+  const [saving,           setSaving]           = useState(false);
+  const [completionValue,  setCompletionValue]  = useState(sub.completionValue ?? '');
+  const [editingValue,     setEditingValue]     = useState(false);
 
   const parent = sub.parentActivityId;
+  const metric = parent?.metric || 'value';
 
   const changeStatus = async (newStatus) => {
+    // If completing, show value input first
+    if (newStatus === 'Completed' && metric !== 'occurrences') {
+      setEditingValue(true);
+      return;
+    }
+
     setSaving(true);
     try {
-      const { data } = await api.put(`/subactivities/${sub._id}`, { status: newStatus });
+      const payload = { status: newStatus };
+      if (newStatus === 'Completed') {
+        payload.completionValue = completionValue !== '' ? Number(completionValue) : 0;
+      }
+      const { data } = await api.put(`/subactivities/${sub._id}`, payload);
       setStatus(data.data.status);
       onUpdated();
+      toast.success(newStatus === 'Completed' ? 'Completed! 🎉' : 'Status updated');
     } catch {
       toast.error('Failed to update');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const saveValue = async () => {
+    setSaving(true);
+    try {
+      await api.put(`/subactivities/${sub._id}`, {
+        status: 'Completed',
+        completionValue: completionValue !== '' ? Number(completionValue) : 0
+      });
+      setStatus('Completed');
+      setEditingValue(false);
+      onUpdated();
+      toast.success('Completed! 🎉');
+    } catch {
+      toast.error('Failed to save');
     } finally {
       setSaving(false);
     }
@@ -101,6 +133,48 @@ function TodaySubActivityCard({ sub, onUpdated }) {
           </button>
         )}
       </div>
+
+      {/* Value input when completing */}
+      {editingValue && (
+        <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+          <p className="text-xs text-blue-700 mb-1.5 font-medium">How much {metric}?</p>
+          <div className="flex gap-1.5 items-center">
+            <input
+              type="number"
+              min="0"
+              step="any"
+              value={completionValue}
+              onChange={e => setCompletionValue(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && saveValue()}
+              placeholder="0"
+              autoFocus
+              className="flex-1 text-sm border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
+            />
+            <span className="text-xs text-gray-600 font-medium">{metric}</span>
+            <button onClick={saveValue} disabled={saving}
+              className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 disabled:opacity-50">
+              {saving ? '…' : 'Save'}
+            </button>
+            <button onClick={() => setEditingValue(false)}
+              className="text-xs text-gray-400 hover:text-gray-700">✕</button>
+          </div>
+        </div>
+      )}
+
+      {/* Completed value display */}
+      {status === 'Completed' && !editingValue && (
+        <div className="mb-2 text-xs">
+          <span className="text-gray-500">Logged: </span>
+          <button
+            onClick={() => setEditingValue(true)}
+            className="text-blue-600 hover:underline font-medium"
+          >
+            {completionValue !== '' && completionValue !== 0
+              ? `${completionValue} ${metric}`
+              : `+ add ${metric}`}
+          </button>
+        </div>
+      )}
 
       {/* Notes */}
       {editing ? (

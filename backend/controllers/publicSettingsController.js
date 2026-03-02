@@ -40,6 +40,22 @@ const PLAN_DEFAULTS = {
   },
 };
 
+/**
+ * Merge a DB plan object over the static defaults, but treat 0 as "unset"
+ * for yearlyPrice and yearlyDiscountPercent so that an old DB document
+ * (created before those fields existed) doesn't silently zero-out the defaults.
+ */
+const mergePlan = (defaults, dbPlan) => {
+  if (!dbPlan) return { ...defaults };
+  const merged = { ...defaults, ...dbPlan };
+  // Keep the default yearlyPrice / discount when the DB holds 0 (never explicitly saved)
+  if (!dbPlan.yearlyPrice)           merged.yearlyPrice           = defaults.yearlyPrice           ?? 0;
+  if (!dbPlan.yearlyDiscountPercent) merged.yearlyDiscountPercent = defaults.yearlyDiscountPercent ?? 0;
+  // Keep the default monthly price when the DB holds 0 for a paid plan
+  if (defaults.price > 0 && !dbPlan.price) merged.price = defaults.price;
+  return merged;
+};
+
 // @desc  Get public plan details (no auth required)
 // @route GET /api/settings/plans
 const getPublicPlans = async (req, res) => {
@@ -50,8 +66,8 @@ const getPublicPlans = async (req, res) => {
     res.json({
       success: true,
       data: {
-        free: { ...PLAN_DEFAULTS.free, ...(plans.free ?? {}) },
-        pro:  { ...PLAN_DEFAULTS.pro,  ...(plans.pro  ?? {}) },
+        free: mergePlan(PLAN_DEFAULTS.free, plans.free),
+        pro:  mergePlan(PLAN_DEFAULTS.pro,  plans.pro),
       },
     });
   } catch (error) {

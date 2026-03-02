@@ -1,5 +1,6 @@
 const SubActivity = require('../models/SubActivity');
 const Activity    = require('../models/Activity');
+const { recalculateMilestoneProgress } = require('./milestoneController');
 
 // ─── Helper: verify the parent activity belongs to the current user ───────────
 const verifyParentOwnership = async (activityId, userId) => {
@@ -83,7 +84,7 @@ const updateSubActivity = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Not authorised' });
     }
 
-    const { status, notes } = req.body;
+    const { status, notes, completionValue } = req.body;
 
     if (status !== undefined) {
       subActivity.status = status;
@@ -91,7 +92,13 @@ const updateSubActivity = async (req, res) => {
         subActivity.completedAt = new Date();
       } else if (status !== 'Completed') {
         subActivity.completedAt = null;
+        subActivity.completionValue = 0;
       }
+    }
+
+    // Save the numeric value logged when completing (distance, weight, time, etc.)
+    if (status === 'Completed' && completionValue !== undefined) {
+      subActivity.completionValue = Number(completionValue) || 0;
     }
 
     if (notes !== undefined) {
@@ -99,6 +106,9 @@ const updateSubActivity = async (req, res) => {
     }
 
     await subActivity.save();
+
+    // Auto-update any milestones linked to the parent activity
+    await recalculateMilestoneProgress(subActivity.parentActivityId);
 
     res.json({ success: true, data: subActivity });
   } catch (error) {

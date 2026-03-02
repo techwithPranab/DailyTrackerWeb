@@ -13,18 +13,21 @@ const PRICE_FALLBACK = {
 /**
  * Load plan prices from AppSettings (DB).
  * Returns { monthly: <paise>, yearly: <paise> } for the given plan key.
- * Falls back to PRICE_FALLBACK if the DB document is absent.
+ * Falls back to PRICE_FALLBACK if the DB document is absent or has 0
+ * for a field (meaning it was created before that field existed in the schema).
  */
 const getPlanPrices = async (plan) => {
   try {
     const settings = await AppSettings.findById('global').lean();
-    const p = settings?.plans?.[plan];
+    const p        = settings?.plans?.[plan];
+    const fallback = PRICE_FALLBACK[plan] ?? PRICE_FALLBACK.free;
     if (p) {
-      return {
-        // AppSettings stores prices in ₹ — convert to paise for Razorpay
-        monthly: Math.round((p.price        ?? 0) * 100),
-        yearly:  Math.round((p.yearlyPrice  ?? 0) * 100),
-      };
+      // AppSettings stores prices in ₹ — convert to paise for Razorpay.
+      // If the DB value is 0 (never explicitly saved), use the static fallback
+      // so an old document doesn't silently zero-out yearly pricing.
+      const monthly = p.price       ? Math.round(p.price       * 100) : fallback.monthly;
+      const yearly  = p.yearlyPrice ? Math.round(p.yearlyPrice * 100) : fallback.yearly;
+      return { monthly, yearly };
     }
   } catch (_) { /* fall through */ }
   return PRICE_FALLBACK[plan] ?? PRICE_FALLBACK.free;
@@ -41,12 +44,17 @@ const getPlans = async (req, res) => {
     };
     if (!settings?.plans) return res.json({ success: true, data: DEFAULTS });
 
-    const toCard = (key, p) => ({
-      name:     p?.name    ?? key,
-      price:    { monthly: Math.round((p?.price       ?? 0) * 100),
-                  yearly:  Math.round((p?.yearlyPrice  ?? 0) * 100) },
-      currency: 'INR',
-    });
+    const toCard = (key, p) => {
+      const fb = PRICE_FALLBACK[key] ?? PRICE_FALLBACK.free;
+      return {
+        name:     p?.name    ?? key,
+        price:    {
+          monthly: p?.price       ? Math.round(p.price       * 100) : fb.monthly,
+          yearly:  p?.yearlyPrice ? Math.round(p.yearlyPrice * 100) : fb.yearly,
+        },
+        currency: 'INR',
+      };
+    };
 
     res.json({
       success: true,

@@ -9,6 +9,9 @@ export default function WeeklyActivityTable() {
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [weeklyData, setWeeklyData] = useState(null);
   const [loading, setLoading] = useState(true);
+  // Value capture state: { activityId, date, metric }
+  const [pendingComplete, setPendingComplete] = useState(null);
+  const [pendingValue,    setPendingValue]    = useState('');
 
   useEffect(() => {
     fetchWeeklyActivities();
@@ -29,15 +32,52 @@ export default function WeeklyActivityTable() {
     }
   };
 
-  const handleToggleComplete = async (activityId, date, isCompleted) => {
+  const handleToggleComplete = async (activityId, date, isCompleted, metric) => {
+    if (isCompleted) {
+      // Unmark immediately — no value prompt needed
+      try {
+        await api.post(`/activities/${activityId}/uncomplete`, { date });
+        toast.success('Marked as incomplete');
+        fetchWeeklyActivities();
+      } catch (error) {
+        toast.error('Failed to update activity');
+        console.error(error);
+      }
+      return;
+    }
+    // Marking complete — ask for value if activity uses a measurable metric
+    if (metric && metric !== 'occurrences') {
+      setPendingComplete({ activityId, date, metric });
+      setPendingValue('');
+    } else {
+      // No metric — mark complete directly
+      try {
+        await api.post(`/activities/${activityId}/complete`, { date, value: 0 });
+        toast.success('Marked as complete! 🎉');
+        fetchWeeklyActivities();
+      } catch (error) {
+        toast.error('Failed to update activity');
+        console.error(error);
+      }
+    }
+  };
+
+  const confirmComplete = async () => {
+    if (!pendingComplete) return;
+    const { activityId, date } = pendingComplete;
     try {
-      const endpoint = isCompleted ? 'uncomplete' : 'complete';
-      await api.post(`/activities/${activityId}/${endpoint}`, { date });
-      toast.success(isCompleted ? 'Marked as incomplete' : 'Marked as complete! 🎉');
+      await api.post(`/activities/${activityId}/complete`, {
+        date,
+        value: pendingValue !== '' ? Number(pendingValue) : 0
+      });
+      toast.success('Marked as complete! 🎉');
       fetchWeeklyActivities();
     } catch (error) {
       toast.error('Failed to update activity');
       console.error(error);
+    } finally {
+      setPendingComplete(null);
+      setPendingValue('');
     }
   };
 
@@ -84,6 +124,44 @@ export default function WeeklyActivityTable() {
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-3 sm:p-6">
+      {/* Value capture modal */}
+      {pendingComplete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-80">
+            <h3 className="text-base font-semibold text-gray-800 mb-3">Log your value</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              How much {pendingComplete.metric} did you complete?
+            </p>
+            <div className="flex gap-2 mb-5">
+              <input
+                type="number"
+                min="0"
+                value={pendingValue}
+                onChange={e => setPendingValue(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && confirmComplete()}
+                placeholder="0"
+                autoFocus
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+              <span className="flex items-center text-sm text-gray-600 font-medium">{pendingComplete.metric}</span>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={confirmComplete}
+                className="flex-1 bg-blue-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-blue-700"
+              >
+                Save & Complete
+              </button>
+              <button
+                onClick={() => { setPendingComplete(null); setPendingValue(''); }}
+                className="flex-1 border border-gray-300 text-gray-600 text-sm font-medium py-2 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Header with navigation */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
@@ -168,7 +246,7 @@ export default function WeeklyActivityTable() {
                       </div>
                       {isScheduled ? (
                         <button
-                          onClick={() => handleToggleComplete(activity._id, day.date, isCompleted)}
+                          onClick={() => handleToggleComplete(activity._id, day.date, isCompleted, activity.metric)}
                           className={`w-8 h-8 rounded-full flex items-center justify-center transition-all text-sm ${
                             isCompleted
                               ? 'bg-green-500 hover:bg-green-600 text-white'
@@ -265,7 +343,7 @@ export default function WeeklyActivityTable() {
                       >
                         {isScheduled ? (
                           <button
-                            onClick={() => handleToggleComplete(activity._id, day.date, isCompleted)}
+                            onClick={() => handleToggleComplete(activity._id, day.date, isCompleted, activity.metric)}
                             className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                               isCompleted
                                 ? 'bg-green-500 hover:bg-green-600 text-white'
