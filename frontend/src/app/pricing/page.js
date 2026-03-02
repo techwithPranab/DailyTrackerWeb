@@ -93,7 +93,7 @@ function Cell({ v }) {
 }
 
 // ── Billing toggle ────────────────────────────────────────────────────────────
-function BillingToggle({ billing, onChange }) {
+function BillingToggle({ billing, onChange, discount }) {
   return (
     <div className="flex items-center justify-center mt-6">
       <div className="flex items-center bg-gray-100 rounded-xl p-1 gap-1">
@@ -116,10 +116,11 @@ function BillingToggle({ billing, onChange }) {
           }`}
         >
           Yearly
-          {/* discount badge — always show if a discount exists in planData */}
-          <span className="ml-1.5 inline-block bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full align-middle">
-            Save more
-          </span>
+          {discount > 0 && (
+            <span className="ml-1.5 inline-block bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full align-middle">
+              Save {discount}%
+            </span>
+          )}
         </button>
       </div>
     </div>
@@ -282,7 +283,7 @@ export default function PricingPage() {
         </p>
         {/* Billing toggle — only show when plan data loaded and yearly option exists */}
         {planData && hasYearly && (
-          <BillingToggle billing={billing} onChange={setBilling} />
+          <BillingToggle billing={billing} onChange={setBilling} discount={proDiscount} />
         )}
       </section>
 
@@ -358,6 +359,7 @@ export default function PricingPage() {
                         </div>
                         <p className="text-gray-400 text-xs mt-1">
                           Billed ₹{proYearlyPrice}/year
+                          {proDiscount > 0 && ` (save ${proDiscount}%)`}
                         </p>
                       </>
                     ) : (
@@ -442,7 +444,7 @@ export default function PricingPage() {
           {planData && pro.price > 0 && (
             <p className="text-center text-sm text-gray-400 mt-4">
               {billing === 'yearly' && hasYearly
-                ? <>Pro yearly at <span className="font-semibold text-gray-600">₹{proYearlyPrice}/year</span> — that's ₹{proYearlyPerMonth}/mo.</>
+                ? <>Pro yearly at <span className="font-semibold text-gray-600">₹{proYearlyPrice}/year</span>{proDiscount > 0 && <> (save {proDiscount}%)</>} — that's ₹{proYearlyPerMonth}/mo.</>
                 : <>Pro monthly at <span className="font-semibold text-gray-600">₹{pro.price}/month</span> — cancel anytime.</>
               }
             </p>
