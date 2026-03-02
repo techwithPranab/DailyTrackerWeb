@@ -180,11 +180,11 @@ export default function AdminSubscriptionsPage() {
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-xs font-bold flex-shrink-0">
-                              {(sub.user?.name || 'U').charAt(0).toUpperCase()}
+                              {(sub.userId?.name || 'U').charAt(0).toUpperCase()}
                             </div>
                             <div className="min-w-0">
-                              <p className="text-gray-800 font-medium truncate max-w-[130px]">{sub.user?.name || '—'}</p>
-                              <p className="text-gray-400 text-xs truncate max-w-[130px]">{sub.user?.email || '—'}</p>
+                              <p className="text-gray-800 font-medium truncate max-w-[130px]">{sub.userId?.name || '—'}</p>
+                              <p className="text-gray-400 text-xs truncate max-w-[130px]">{sub.userId?.email || '—'}</p>
                             </div>
                           </div>
                         </td>

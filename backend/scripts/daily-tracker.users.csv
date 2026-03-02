@@ -1,0 +1,2 @@
+_id,name,email,password,role,subscription.plan,subscription.status,subscription.endDate,subscription.startDate,status,lastLogin,profileSettings.theme,profileSettings.notifications,createdAt,updatedAt,__v
+69a35ba99d64f39e78816f8f,TrakIO Admin,admin@trakio.in,$2a$10$ToiLfj8VjBwwpnfm5UQQz.0Xs/v3psNiDoBZRK36jYjNsNqLIn2lO,admin,free,active,,2026-02-28T21:18:33.797Z,active,2026-03-01T02:33:31.913Z,light,true,2026-02-28T21:18:33.799Z,2026-03-01T02:33:31.914Z,0

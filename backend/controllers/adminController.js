@@ -291,8 +291,8 @@ const getActivityFeed = async (req, res) => {
       .limit(10);
 
     const recentActivities = await Activity.find()
-      .populate('user', 'name email')
-      .select('title type createdAt user')
+      .populate('userId', 'name email')
+      .select('name status createdAt userId')
       .sort({ createdAt: -1 })
       .limit(10);
 

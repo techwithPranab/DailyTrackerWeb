@@ -164,9 +164,9 @@ export default function AdminDashboardPage() {
                 <div key={a._id} className="flex items-start gap-3">
                   <span className="text-lg mt-0.5">📝</span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-gray-900 text-sm font-medium truncate">{a.title}</p>
+                    <p className="text-gray-900 text-sm font-medium truncate">{a.name}</p>
                     <p className="text-gray-500 text-xs">
-                      by {a.user?.name || 'Unknown'} · {new Date(a.createdAt).toLocaleDateString()}
+                      by {a.userId?.name || 'Unknown'} · {new Date(a.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>

@@ -115,11 +115,11 @@ export default function AdminTransactionsPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-xs font-bold flex-shrink-0">
-                            {(t.userName || t.userEmail || 'U').charAt(0).toUpperCase()}
+                            {(t.user?.name || t.user?.email || 'U').charAt(0).toUpperCase()}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-gray-800 font-medium truncate max-w-[140px]">{t.userName || '—'}</p>
-                            <p className="text-gray-400 text-xs truncate max-w-[140px]">{t.userEmail || '—'}</p>
+                            <p className="text-gray-800 font-medium truncate max-w-[140px]">{t.user?.name || '—'}</p>
+                            <p className="text-gray-400 text-xs truncate max-w-[140px]">{t.user?.email || '—'}</p>
                           </div>
                         </div>
                       </td>
