@@ -20,6 +20,7 @@ export default function Navbar() {
     { href: '/milestones', label: 'Milestones', icon: '🎯' },
     { href: '/reminders', label: 'Reminders', icon: '⏰' },
     { href: '/utilities', label: 'Utilities', icon: '🏠' },
+    ...(user?.subscription?.plan === 'pro' ? [{ href: '/dashboard/analytics', label: 'Analytics', icon: '📈' }] : []),
   ];
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);

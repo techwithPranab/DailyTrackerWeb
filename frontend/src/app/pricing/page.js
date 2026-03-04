@@ -242,7 +242,6 @@ export default function PricingPage() {
             <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
               <Link href="/pricing" className="text-blue-600 font-semibold">Pricing</Link>
               <Link href="/#faqs" className="hover:text-gray-900 transition-colors">FAQs</Link>
-              <Link href="/contact" className="hover:text-gray-900 transition-colors">Contact</Link>
             </div>
             <div className="flex items-center gap-3">
               {user ? (

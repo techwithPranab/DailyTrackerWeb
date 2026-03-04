@@ -16,11 +16,13 @@ const {
   unmarkActivityComplete
 } = require('../controllers/weeklyActivityController');
 const { getSubActivities } = require('../controllers/subActivityController');
+const { getActivityAnalytics } = require('../controllers/analyticsController');
 
 router.route('/')
   .post(protect, checkPlanLimit('activity'), checkFeatureAccess('recurringActivities'), createActivity)
   .get(protect, getActivities);
 
+router.get('/analytics', protect, checkFeatureAccess('analytics'), getActivityAnalytics);
 router.get('/today', protect, getTodayActivities);
 router.get('/weekly', protect, getWeeklyActivities);
 
