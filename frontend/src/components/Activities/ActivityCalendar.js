@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import {
-  format,
+  format, parseISO,
   startOfMonth, endOfMonth,
   startOfWeek, endOfWeek,
   addDays, addMonths, subMonths,
@@ -54,17 +54,18 @@ export default function ActivityCalendar() {
   };
 
   // Get activities whose scheduledDates contains the given day
+  // Note: Compare using only date part (YYYY-MM-DD) to avoid timezone issues
   const getActivitiesForDay = (day) => {
-    const dayStart = new Date(day);
-    dayStart.setHours(0, 0, 0, 0);
-    const dayEnd = new Date(day);
-    dayEnd.setHours(23, 59, 59, 999);
+    // Get date string for comparison (YYYY-MM-DD format)
+    const dayString = format(day, 'yyyy-MM-dd');
 
     return activities.filter(activity => {
       if (!activity.scheduledDates || activity.scheduledDates.length === 0) return false;
       return activity.scheduledDates.some(d => {
-        const sd = new Date(d);
-        return sd >= dayStart && sd <= dayEnd;
+        // Extract date part directly from ISO string to avoid timezone conversion
+        // e.g., "2024-03-06T00:00:00.000Z" -> "2024-03-06"
+        const sdString = typeof d === 'string' ? d.split('T')[0] : format(new Date(d), 'yyyy-MM-dd');
+        return sdString === dayString;
       });
     });
   };
@@ -324,11 +325,11 @@ export default function ActivityCalendar() {
                       <p className="text-sm text-gray-600 mb-2">{activity.description}</p>
                     )}
                     <div className="text-xs sm:text-sm text-gray-500 space-y-1">
-                      <div>📅 Started: {format(new Date(activity.startDate), 'MMM d, yyyy')}</div>
+                      <div>📅 Started: {format(parseISO(activity.startDate.split('T')[0]), 'MMM d, yyyy')}</div>
                       {activity.duration > 0 && <div>⏱️ Duration: {activity.duration} min</div>}
                       <div>🏷️ Category: {activity.category}</div>
                       {activity.recurrenceEndDate && (
-                        <div>🏁 Until: {format(new Date(activity.recurrenceEndDate), 'MMM d, yyyy')}</div>
+                        <div>🏁 Until: {format(parseISO(activity.recurrenceEndDate.split('T')[0]), 'MMM d, yyyy')}</div>
                       )}
                     </div>
                   </div>

@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 import ProtectedLayout from '@/components/Layout/ProtectedLayout';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/axios';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import toast from 'react-hot-toast';
 import ActivityCard from '@/components/Activities/ActivityCard';
 import Link from 'next/link';
@@ -426,7 +426,7 @@ export default function DashboardPage() {
                 title: s.utilityName,
                 subtitle: `🔧 ${s.serviceType}`,
                 date: new Date(s.scheduledDate),
-                dateLabel: format(new Date(s.scheduledDate), 'MMM d, yyyy'),
+                dateLabel: format(parseISO(s.scheduledDate.split('T')[0]), 'MMM d, yyyy'),
                 badge: { label: days < 0 ? 'Overdue' : days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : `${days}d`, color: badgeColor },
               };
             });

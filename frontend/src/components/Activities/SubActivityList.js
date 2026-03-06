@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 
@@ -95,7 +95,8 @@ function SubActivityRow({ sub, onUpdated, activityMetric }) {
     <tr className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
       {/* Date */}
       <td className="py-2.5 px-3 text-sm text-gray-700 whitespace-nowrap font-medium">
-        {format(new Date(sub.scheduledDate), 'EEE, MMM d')}
+        {/* Use UTC date to avoid timezone shifting */}
+        {format(parseISO(sub.scheduledDate.split('T')[0]), 'EEE, MMM d')}
       </td>
 
       {/* Status pill + cycle button */}
