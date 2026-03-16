@@ -8,10 +8,8 @@ import Footer from '@/components/Layout/Footer';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 import StatCard from '@/components/Analytics/StatCard';
-import CategoryPerformance from '@/components/Analytics/CategoryPerformance';
 import WeeklyActivityTrend from '@/components/Analytics/WeeklyActivityTrend';
 import MilestoneInsights from '@/components/Analytics/MilestoneInsights';
-import CategoryInsights from '@/components/Analytics/CategoryInsights';
 import { PieChart, BarChart, LineChart, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Pie, Bar } from 'recharts';
 
 export default function AnalyticsPage() {
@@ -25,10 +23,8 @@ export default function AnalyticsPage() {
   const [activityByStatus, setActivityByStatus] = useState([]);
   const [activityByCategory, setActivityByCategory] = useState([]);
   const [activityTrend, setActivityTrend] = useState([]);
-  const [categoryPerformance, setCategoryPerformance] = useState([]);
   const [weeklyStats, setWeeklyStats] = useState([]);
-  const [topCategory, setTopCategory] = useState(null);
-  const [leastCompletedCategory, setLeastCompletedCategory] = useState(null);
+  const [activityWeeklyData, setActivityWeeklyData] = useState([]);
 
   // Milestone data
   const [milestoneStats, setMilestoneStats] = useState(null);
@@ -36,7 +32,6 @@ export default function AnalyticsPage() {
   const [milestoneProgress, setMilestoneProgress] = useState([]);
   const [mostActiveMilestone, setMostActiveMilestone] = useState(null);
   const [fastestCompletedMilestone, setFastestCompletedMilestone] = useState(null);
-  const [milestoneTimeline, setMilestoneTimeline] = useState([]);
   const [overallProgress, setOverallProgress] = useState(0);
 
   // Colors
@@ -85,10 +80,8 @@ export default function AnalyticsPage() {
 
         setActivityByCategory(activitiesData.byCategory || []);
         setActivityTrend(activitiesData.trend || []);
-        setCategoryPerformance(activitiesData.categoryPerformance || []);
         setWeeklyStats(activitiesData.weeklyStats || []);
-        setTopCategory(activitiesData.topCategory);
-        setLeastCompletedCategory(activitiesData.leastCompletedCategory);
+        setActivityWeeklyData(activitiesData.activityWeeklyData || []);
 
         // Process milestone data - Phase 2 enhanced
         setMilestoneStats({
@@ -110,7 +103,6 @@ export default function AnalyticsPage() {
         setMilestoneProgress(milestonesData.progress || []);
         setMostActiveMilestone(milestonesData.mostActiveMilestone);
         setFastestCompletedMilestone(milestonesData.fastestCompletedMilestone);
-        setMilestoneTimeline(milestonesData.milestoneTimeline || []);
         setOverallProgress(milestonesData.overallProgress || 0);
       } catch (err) {
         console.error('Error fetching analytics:', err);
@@ -209,16 +201,6 @@ export default function AnalyticsPage() {
             />
           </div>
 
-          {/* Category Insights */}
-          {(topCategory || leastCompletedCategory) && (
-            <div className="mb-8">
-              <CategoryInsights 
-                topCategory={topCategory} 
-                leastCompletedCategory={leastCompletedCategory}
-              />
-            </div>
-          )}
-
           {/* Activity Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             {/* Activities by Status */}
@@ -272,24 +254,20 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          {/* Category Performance Table */}
-          {categoryPerformance.length > 0 && (
-            <div className="mb-8">
-              <CategoryPerformance data={categoryPerformance} />
-            </div>
-          )}
-
           {/* Weekly Trend */}
           {weeklyStats.length > 0 && (
             <div className="mb-8">
-              <WeeklyActivityTrend data={weeklyStats} />
+              <WeeklyActivityTrend 
+                data={weeklyStats} 
+                activityWeeklyData={activityWeeklyData}
+              />
             </div>
           )}
 
-          {/* Activity Trend (Last 30 Days) */}
+          {/* Activity Trend (Last 30 Days) - From SubActivities */}
           {activityTrend.length > 0 && (
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Activity Trend (Last 30 Days)</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Activity Trend - Last 30 Days (Daily Tasks)</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={activityTrend}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -423,24 +401,6 @@ export default function AnalyticsPage() {
               )}
             </div>
           </div>
-
-          {/* Milestone Timeline */}
-          {milestoneTimeline.length > 0 && (
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Milestone Timeline</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={milestoneTimeline}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="created" fill="#3b82f6" name="Created" />
-                  <Bar dataKey="completed" fill="#10b981" name="Completed" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
         </div>
       </main>
 

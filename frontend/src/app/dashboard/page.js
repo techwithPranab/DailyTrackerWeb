@@ -9,6 +9,7 @@ import api from '@/lib/axios';
 import { format, parseISO } from 'date-fns';
 import toast from 'react-hot-toast';
 import ActivityCard from '@/components/Activities/ActivityCard';
+import MissedTasksPanel from '@/components/Activities/MissedTasksPanel';
 import Link from 'next/link';
 import PlanUsageBar from '@/components/Subscription/PlanUsageBar';
 import PlanModal from '@/components/Subscription/PlanModal';
@@ -394,6 +395,9 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+
+        {/* ── Missed Tasks ────────────────────────────────────────────────── */}
+        <MissedTasksPanel />
 
         {/* ── Upcoming Reminders & Services ─────────────────────────────── */}
         <div className="mt-6 sm:mt-8">

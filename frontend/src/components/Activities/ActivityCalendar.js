@@ -14,8 +14,9 @@ import toast from 'react-hot-toast';
 
 export default function ActivityCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [view, setView] = useState('monthly');
+  const [view, setView] = useState('weekly');           // ← weekly by default
   const [activities, setActivities] = useState([]);
+  const [subActivities, setSubActivities] = useState([]); // ← per-day task status
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
@@ -37,14 +38,24 @@ export default function ActivityCalendar() {
         endDate   = endOfWeek(currentDate, { weekStartsOn: 0 });
       }
 
-      const { data } = await api.get('/activities', {
-        params: {
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString()
-        }
-      });
+      // Fetch both activities and subactivities for status data
+      const [activitiesRes, subActivitiesRes] = await Promise.all([
+        api.get('/activities', {
+          params: {
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString()
+          }
+        }),
+        api.get('/subactivities', {
+          params: {
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString()
+          }
+        }).catch(() => ({ data: { data: [] } })) // gracefully ignore errors
+      ]);
 
-      setActivities(data.data || []);
+      setActivities(activitiesRes.data.data || []);
+      setSubActivities(subActivitiesRes.data.data || subActivitiesRes.data || []);
     } catch (error) {
       toast.error('Failed to load activities');
       console.error(error);
@@ -78,6 +89,53 @@ export default function ActivityCalendar() {
     }
   };
 
+  // ── Day highlight logic ───────────────────────────────────────────────────
+  // Returns 'completed' | 'missed' | 'partial' | 'upcoming'
+  const getDayHighlight = (day) => {
+    const dayString = format(day, 'yyyy-MM-dd');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dayStart = new Date(day);
+    dayStart.setHours(0, 0, 0, 0);
+    const isPast = dayStart < today;
+
+    // Only colour-code past days (or today) — future stays blue
+    if (!isPast) return 'upcoming';
+
+    // Filter subactivities that fall on this day
+    const daySubs = subActivities.filter(sub => {
+      if (!sub.scheduledDate) return false;
+      const s = typeof sub.scheduledDate === 'string'
+        ? sub.scheduledDate.split('T')[0]
+        : format(new Date(sub.scheduledDate), 'yyyy-MM-dd');
+      return s === dayString;
+    });
+
+    // No subactivities yet — fall back to parent activity status
+    if (daySubs.length === 0) {
+      const dayActivities = getActivitiesForDay(day);
+      if (dayActivities.length === 0) return 'upcoming';
+      const allDone = dayActivities.every(a => a.status === 'Completed');
+      return allDone ? 'completed' : 'missed';
+    }
+
+    const completedCount = daySubs.filter(s => s.status === 'Completed').length;
+    if (completedCount === daySubs.length)    return 'completed';
+    if (completedCount === 0)                 return 'missed';
+    return 'partial'; // some done, some not
+  };
+
+  // Badge colour for a day
+  const getDayBadgeClass = (highlight) => {
+    switch (highlight) {
+      case 'completed': return 'bg-green-500';
+      case 'missed':    return 'bg-red-500';
+      case 'partial':   return 'bg-orange-400';
+      default:          return 'bg-blue-500'; // upcoming / future
+    }
+  };
+  // ─────────────────────────────────────────────────────────────────────────
+
   const closePopup = () => {
     setShowPopup(false);
     setSelectedDay(null);
@@ -107,11 +165,12 @@ export default function ActivityCalendar() {
 
     while (day <= gridEnd) {
       for (let i = 0; i < 7; i++) {
-        const currentDay   = day;
+        const currentDay    = day;
         const dayActivities = getActivitiesForDay(currentDay);
         const isCurrentMonth = isSameMonth(currentDay, monthStart);
         const isToday = isSameDay(currentDay, new Date());
-        const hasRecurring = dayActivities.some(a => a.isRecurring);
+        const highlight = getDayHighlight(currentDay);
+        const badgeClass = getDayBadgeClass(highlight);
 
         days.push(
           <div
@@ -129,9 +188,7 @@ export default function ActivityCalendar() {
             </div>
             {dayActivities.length > 0 && (
               <div className="space-y-1">
-                <div className={`text-white text-xs rounded px-1 sm:px-2 py-0.5 sm:py-1 text-center font-medium ${
-                  hasRecurring ? 'bg-purple-500' : 'bg-blue-500'
-                }`}>
+                <div className={`text-white text-xs rounded px-1 sm:px-2 py-0.5 sm:py-1 text-center font-medium ${badgeClass}`}>
                   {dayActivities.length} {dayActivities.length === 1 ? 'activity' : 'activities'}
                 </div>
                 <div className="hidden sm:block text-xs text-gray-600 truncate">
@@ -162,28 +219,42 @@ export default function ActivityCalendar() {
       const day = addDays(weekStart, i);
       const dayActivities = getActivitiesForDay(day);
       const isToday = isSameDay(day, new Date());
-      const hasRecurring = dayActivities.some(a => a.isRecurring);
+      const highlight = getDayHighlight(day);
+      const badgeClass = getDayBadgeClass(highlight);
 
       days.push(
         <div
           key={day.toString()}
           onClick={() => handleDayClick(day)}
-          className={`flex-1 min-h-32 sm:min-h-48 border border-gray-200 p-2 sm:p-4 bg-white ${
-            dayActivities.length > 0 ? 'cursor-pointer hover:bg-blue-50' : ''
-          } ${isToday ? 'ring-2 ring-blue-500' : ''}`}
+          className={[
+            'border border-gray-200 bg-white transition-colors',
+            'flex flex-row items-start gap-3 p-3',
+            'sm:flex-col sm:p-4 sm:min-h-48',
+            dayActivities.length > 0 ? 'cursor-pointer hover:bg-blue-50' : '',
+            isToday ? 'ring-2 ring-inset ring-blue-500' : '',
+          ].join(' ')}
         >
-          <div className={`text-sm sm:text-base font-semibold mb-2 ${isToday ? 'text-blue-600' : 'text-gray-900'}`}>
-            <div>{format(day, 'EEE')}</div>
-            <div className="text-lg sm:text-2xl">{format(day, 'd')}</div>
+          {/* Day label — always visible on both layouts */}
+          <div className={`shrink-0 sm:w-auto text-left sm:text-left font-semibold ${isToday ? 'text-blue-600' : 'text-gray-900'}`}>
+            {/* Mobile: "Sun 9" on one line */}
+            <div className="sm:hidden text-sm">
+              <span className="font-bold">{format(day, 'EEE')}</span>
+              <span className="ml-1 text-base font-black">{format(day, 'd')}</span>
+            </div>
+            {/* Desktop: stacked */}
+            <div className="hidden sm:block">
+              <div className="text-sm">{format(day, 'EEE')}</div>
+              <div className="text-2xl">{format(day, 'd')}</div>
+            </div>
           </div>
-          {dayActivities.length > 0 && (
-            <div className="space-y-1 sm:space-y-2">
-              <div className={`text-white text-xs sm:text-sm rounded px-2 py-1 text-center font-medium ${
-                hasRecurring ? 'bg-purple-500' : 'bg-blue-500'
-              }`}>
+
+          {/* Activities */}
+          {dayActivities.length > 0 ? (
+            <div className="flex-1 min-w-0 space-y-1 sm:space-y-2 w-full">
+              <div className={`text-white text-xs sm:text-sm rounded px-2 py-1 text-center font-medium ${badgeClass}`}>
                 {dayActivities.length} {dayActivities.length === 1 ? 'activity' : 'activities'}
               </div>
-              <div className="space-y-1 max-h-24 sm:max-h-32 overflow-y-auto">
+              <div className="space-y-1 max-h-20 sm:max-h-32 overflow-y-auto">
                 {dayActivities.slice(0, 3).map((activity, idx) => (
                   <div key={idx} className="text-xs bg-gray-100 rounded p-1 truncate">
                     {activity.isRecurring && '🔄 '}{activity.name}
@@ -194,12 +265,18 @@ export default function ActivityCalendar() {
                 )}
               </div>
             </div>
+          ) : (
+            /* Empty day: show a subtle placeholder on mobile so the row still has height */
+            <div className="flex-1 flex items-center sm:hidden">
+              <span className="text-xs text-gray-300 italic">No tasks</span>
+            </div>
           )}
         </div>
       );
     }
 
-    return <div className="grid grid-cols-7 gap-0">{days}</div>;
+    // Mobile: single column stack  |  Desktop: 7-column grid
+    return <div className="grid grid-cols-1 sm:grid-cols-7 gap-0">{days}</div>;
   };
 
   const getPriorityColor = (priority) => {
@@ -256,6 +333,22 @@ export default function ActivityCalendar() {
           </div>
         </div>
 
+        {/* Color Legend */}
+        <div className="flex flex-wrap gap-3 text-xs text-gray-600 mb-2">
+          <span className="flex items-center gap-1">
+            <span className="inline-block w-3 h-3 rounded-full bg-green-500"></span> Completed
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="inline-block w-3 h-3 rounded-full bg-red-500"></span> Missed
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="inline-block w-3 h-3 rounded-full bg-orange-400"></span> Partial
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="inline-block w-3 h-3 rounded-full bg-blue-500"></span> Upcoming
+          </span>
+        </div>
+
         {/* Navigation */}
         <div className="flex justify-between items-center">
           <h3 className="text-base sm:text-lg font-semibold text-gray-900">
@@ -272,8 +365,8 @@ export default function ActivityCalendar() {
         </div>
       </div>
 
-      {/* Day Headers */}
-      <div className="grid grid-cols-7 mb-2">
+      {/* Day Headers — hidden on mobile for weekly view (days show inline in each card) */}
+      <div className={`grid grid-cols-7 mb-2 ${view === 'weekly' ? 'hidden sm:grid' : ''}`}>
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
           <div key={day} className="text-center text-xs sm:text-sm font-semibold text-gray-600 py-2">
             {day}
@@ -298,7 +391,26 @@ export default function ActivityCalendar() {
             </div>
             <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
               <div className="space-y-4">
-                {selectedDay.activities.map((activity) => (
+                {selectedDay.activities.map((activity) => {
+                  // Find the matching subactivity for this specific day
+                  const dayString = format(selectedDay.date, 'yyyy-MM-dd');
+                  const sub = subActivities.find(s => {
+                    const sid = s.parentActivityId?._id ?? s.parentActivityId;
+                    if (!sid || sid.toString() !== activity._id.toString()) return false;
+                    const sd = typeof s.scheduledDate === 'string'
+                      ? s.scheduledDate.split('T')[0]
+                      : format(new Date(s.scheduledDate), 'yyyy-MM-dd');
+                    return sd === dayString;
+                  });
+
+                  const subStatus    = sub?.status ?? null;
+                  const subCompleted = subStatus === 'Completed';
+                  const subValue     = sub?.completionValue ?? null;
+                  const subNotes     = sub?.notes ?? '';
+                  const subCompletedAt = sub?.completedAt ?? null;
+                  const metric       = activity.metric || null;
+
+                  return (
                   <div key={activity._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex-1">
@@ -316,24 +428,65 @@ export default function ActivityCalendar() {
                         <span className={`px-2 py-1 text-xs rounded-full ${getPriorityColor(activity.priority)}`}>
                           {activity.priority}
                         </span>
-                        <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(activity.status)}`}>
-                          {activity.status}
-                        </span>
+                        {/* Show per-day subactivity status if available, else parent status */}
+                        {subStatus ? (
+                          <span className={`px-2 py-1 text-xs rounded-full font-medium ${getStatusColor(subStatus)}`}>
+                            {subStatus}
+                          </span>
+                        ) : (
+                          <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(activity.status)}`}>
+                            {activity.status}
+                          </span>
+                        )}
                       </div>
                     </div>
+
                     {activity.description && (
                       <p className="text-sm text-gray-600 mb-2">{activity.description}</p>
                     )}
+
+                    {/* ── SubActivity completion detail ── */}
+                    {sub && (
+                      <div className={`rounded-lg px-3 py-2.5 mb-3 border text-sm ${
+                        subCompleted
+                          ? 'bg-green-50 border-green-200'
+                          : subStatus === 'In Progress'
+                            ? 'bg-yellow-50 border-yellow-200'
+                            : 'bg-gray-50 border-gray-200'
+                      }`}>
+                        <p className="text-xs font-semibold uppercase tracking-wide mb-1.5 ${
+                          subCompleted ? 'text-green-700' : 'text-gray-500'
+                        }">
+                          {subCompleted ? '✅ Completion Details' : '📋 Task Record'}
+                        </p>
+                        <div className="space-y-1 text-xs text-gray-700">
+                          {subCompleted && subCompletedAt && (
+                            <div>🕐 Completed at: <span className="font-medium">
+                              {format(parseISO(subCompletedAt.split('T')[0]), 'MMM d, yyyy')}
+                            </span></div>
+                          )}
+                          {subCompleted && metric && subValue !== null && subValue > 0 && (
+                            <div>📊 {metric}: <span className="font-semibold text-green-700">{subValue}</span></div>
+                          )}
+                          {subCompleted && metric && (subValue === null || subValue === 0) && (
+                            <div className="text-gray-400 italic">No value recorded</div>
+                          )}
+                          {!subCompleted && (
+                            <div className="text-gray-500 italic">Not completed on this day</div>
+                          )}
+                          {subNotes && (
+                            <div>📝 Notes: <span className="font-medium">{subNotes}</span></div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="text-xs sm:text-sm text-gray-500 space-y-1">
-                      <div>📅 Started: {format(parseISO(activity.startDate.split('T')[0]), 'MMM d, yyyy')}</div>
                       {activity.duration > 0 && <div>⏱️ Duration: {activity.duration} min</div>}
-                      <div>🏷️ Category: {activity.category}</div>
-                      {activity.recurrenceEndDate && (
-                        <div>🏁 Until: {format(parseISO(activity.recurrenceEndDate.split('T')[0]), 'MMM d, yyyy')}</div>
-                      )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>

@@ -10,6 +10,80 @@ const verifyParentOwnership = async (activityId, userId) => {
   return parent;
 };
 
+// @desc    Get paginated past incomplete sub-activities (missed tasks)
+// @route   GET /api/subactivities/missed?page=1&limit=10
+// @access  Private
+const getMissedSubActivities = async (req, res) => {
+  try {
+    const page  = Math.max(1, parseInt(req.query.page)  || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
+    const skip  = (page - 1) * limit;
+
+    // Everything before today's midnight UTC is "past"
+    const todayStart = new Date();
+    todayStart.setUTCHours(0, 0, 0, 0);
+
+    const filter = {
+      userId: req.user._id,
+      scheduledDate: { $lt: todayStart },
+      status: { $in: ['Not Started', 'In Progress'] }
+    };
+
+    const [totalCount, missed] = await Promise.all([
+      SubActivity.countDocuments(filter),
+      SubActivity.find(filter)
+        .populate({
+          path: 'parentActivityId',
+          select: 'name category priority isRecurring recurrencePattern metric'
+        })
+        .sort({ scheduledDate: -1 }) // most-recent first
+        .skip(skip)
+        .limit(limit)
+    ]);
+
+    res.json({
+      success:    true,
+      totalCount,
+      totalPages: Math.ceil(totalCount / limit),
+      page,
+      limit,
+      count:      missed.length,
+      data:       missed
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Get sub-activities for the current user within a date range
+// @route   GET /api/subactivities?startDate=ISO&endDate=ISO
+// @access  Private
+const getSubActivitiesInRange = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    if (!startDate || !endDate) {
+      return res.status(400).json({ success: false, message: 'startDate and endDate are required' });
+    }
+
+    const start = new Date(startDate);
+    start.setUTCHours(0, 0, 0, 0);
+    const end = new Date(endDate);
+    end.setUTCHours(23, 59, 59, 999);
+
+    const subActivities = await SubActivity.find({
+      userId: req.user._id,
+      scheduledDate: { $gte: start, $lte: end }
+    })
+      .select('scheduledDate status parentActivityId completionValue completedAt notes')
+      .populate({ path: 'parentActivityId', select: 'name metric' })
+      .lean();
+
+    res.json({ success: true, count: subActivities.length, data: subActivities });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // @desc    Get all sub-activities for a parent activity (sorted by date)
 // @route   GET /api/activities/:id/subactivities
 // @access  Private
@@ -117,6 +191,8 @@ const updateSubActivity = async (req, res) => {
 };
 
 module.exports = {
+  getMissedSubActivities,
+  getSubActivitiesInRange,
   getSubActivities,
   getSubActivitiesByDate,
   updateSubActivity

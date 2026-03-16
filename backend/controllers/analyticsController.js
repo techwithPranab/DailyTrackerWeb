@@ -1,5 +1,6 @@
 const Activity = require('../models/Activity');
 const Milestone = require('../models/Milestone');
+const SubActivity = require('../models/SubActivity');
 
 /**
  * Get activity analytics for the logged-in user
@@ -23,11 +24,9 @@ const getActivityAnalytics = async (req, res) => {
           completionRate: 0,
           averageCompletionTime: 0,
           byCategory: [],
-          categoryPerformance: [],
           trend: [],
           weeklyStats: [],
-          topCategory: null,
-          leastCompletedCategory: null
+          activityWeeklyData: []
         }
       });
     }
@@ -100,22 +99,24 @@ const getActivityAnalytics = async (req, res) => {
       );
     }
 
-    // Calculate trend for last 30 days
+    // Calculate trend for last 30 days using SubActivity data
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+    const subActivities = await SubActivity.find({
+      userId,
+      scheduledDate: { $gte: thirtyDaysAgo }
+    });
+
     const trendMap = {};
-    activities.forEach(activity => {
-      // Only count activities created in the last 30 days
-      if (new Date(activity.createdAt) >= thirtyDaysAgo) {
-        const dateStr = new Date(activity.createdAt).toISOString().split('T')[0];
-        if (!trendMap[dateStr]) {
-          trendMap[dateStr] = { created: 0, completed: 0 };
-        }
-        trendMap[dateStr].created += 1;
-        if (activity.status === 'Completed') {
-          trendMap[dateStr].completed += 1;
-        }
+    subActivities.forEach(sub => {
+      const dateStr = new Date(sub.scheduledDate).toISOString().split('T')[0];
+      if (!trendMap[dateStr]) {
+        trendMap[dateStr] = { created: 0, completed: 0 };
+      }
+      trendMap[dateStr].created += 1;
+      if (sub.status === 'Completed') {
+        trendMap[dateStr].completed += 1;
       }
     });
 
@@ -126,28 +127,82 @@ const getActivityAnalytics = async (req, res) => {
         ...data
       }));
 
-    // Calculate weekly stats
+    // Calculate weekly stats using SubActivity data (last 7 days)
     const weeklyMap = {};
+    const activityBreakdown = {}; // Track per-activity data
     const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset to start of day
+    
     for (let i = 6; i >= 0; i--) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
       const weekStr = date.toISOString().split('T')[0];
       const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-      weeklyMap[weekStr] = { day: dayName, created: 0, completed: 0 };
+      weeklyMap[weekStr] = { day: dayName, date: weekStr, created: 0, completed: 0 };
     }
 
-    activities.forEach(activity => {
-      const dateStr = new Date(activity.createdAt).toISOString().split('T')[0];
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+    
+    const todayEnd = new Date(today);
+    todayEnd.setHours(23, 59, 59, 999);
+    
+    const weekSubActivities = await SubActivity.find({
+      userId,
+      scheduledDate: { $gte: sevenDaysAgo, $lte: todayEnd }
+    }).populate('parentActivityId', 'name metric');
+
+    weekSubActivities.forEach(sub => {
+      const schedDate = new Date(sub.scheduledDate);
+      const dateStr = schedDate.toISOString().split('T')[0];
+      
       if (weeklyMap[dateStr]) {
         weeklyMap[dateStr].created++;
-        if (activity.status === 'Completed') {
+        if (sub.status === 'Completed') {
           weeklyMap[dateStr].completed++;
+        }
+      }
+
+      // Track per-activity breakdown
+      if (sub.parentActivityId) {
+        const activityId = sub.parentActivityId._id.toString();
+        const activityName = sub.parentActivityId.name;
+        const activityMetric = sub.parentActivityId.metric || 'value';
+
+        if (!activityBreakdown[activityId]) {
+          activityBreakdown[activityId] = {
+            id: activityId,
+            name: activityName,
+            metric: activityMetric,
+            weeklyData: {}
+          };
+          // Initialize all days for this activity
+          for (let i = 6; i >= 0; i--) {
+            const date = new Date(today);
+            date.setDate(date.getDate() - i);
+            const weekStr = date.toISOString().split('T')[0];
+            const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+            activityBreakdown[activityId].weeklyData[weekStr] = { day: dayName, date: weekStr, value: 0, count: 0 };
+          }
+        }
+
+        if (sub.status === 'Completed' && activityBreakdown[activityId].weeklyData[dateStr]) {
+          activityBreakdown[activityId].weeklyData[dateStr].value += sub.completionValue || 0;
+          activityBreakdown[activityId].weeklyData[dateStr].count += 1;
         }
       }
     });
 
     const weeklyStats = Object.values(weeklyMap);
+    
+    // Convert activityBreakdown to array format
+    const activityWeeklyData = Object.values(activityBreakdown).map(activity => ({
+      id: activity.id,
+      name: activity.name,
+      metric: activity.metric,
+      data: Object.values(activity.weeklyData)
+    }));
 
     res.json({
       success: true,
@@ -159,11 +214,9 @@ const getActivityAnalytics = async (req, res) => {
         completionRate,
         averageCompletionTime,
         byCategory,
-        categoryPerformance,
         trend,
         weeklyStats,
-        topCategory,
-        leastCompletedCategory
+        activityWeeklyData
       }
     });
   } catch (error) {
@@ -195,8 +248,7 @@ const getMilestoneAnalytics = async (req, res) => {
           overallProgress: 0,
           progress: [],
           mostActiveMilestone: null,
-          fastestCompletedMilestone: null,
-          milestoneTimeline: []
+          fastestCompletedMilestone: null
         }
       });
     }
@@ -278,27 +330,6 @@ const getMilestoneAnalytics = async (req, res) => {
       ? Math.round(progress.reduce((sum, m) => sum + m.progress, 0) / progress.length) 
       : 0;
 
-    // Create milestone timeline (group by creation month)
-    const timelineMap = {};
-    milestones.forEach(milestone => {
-      const dateStr = new Date(milestone.createdAt).toISOString().split('T')[0];
-      const month = dateStr.substring(0, 7); // YYYY-MM
-      if (!timelineMap[month]) {
-        timelineMap[month] = { created: 0, completed: 0 };
-      }
-      timelineMap[month].created++;
-      if (milestone.status === 'Completed') {
-        timelineMap[month].completed++;
-      }
-    });
-
-    const milestoneTimeline = Object.entries(timelineMap)
-      .sort(([monthA], [monthB]) => monthA.localeCompare(monthB))
-      .map(([month, data]) => ({
-        month,
-        ...data
-      }));
-
     res.json({
       success: true,
       data: {
@@ -311,8 +342,7 @@ const getMilestoneAnalytics = async (req, res) => {
         overallProgress,
         progress,
         mostActiveMilestone,
-        fastestCompletedMilestone,
-        milestoneTimeline
+        fastestCompletedMilestone
       }
     });
   } catch (error) {
