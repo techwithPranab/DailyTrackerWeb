@@ -10,6 +10,7 @@ import PlanUsageBar from '@/components/Subscription/PlanUsageBar';
 import UpgradeBanner from '@/components/Subscription/UpgradeBanner';
 import PlanModal from '@/components/Subscription/PlanModal';
 import usePlanFeatures from '@/hooks/usePlanFeatures';
+import Pagination from '@/components/Layout/Pagination';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 
@@ -25,6 +26,8 @@ export default function ActivitiesPage() {
     priority: '',
     category: ''
   });
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const { plan, features, isLimitReached, usagePercent } = usePlanFeatures();
   const activityLimit   = features.activities;  // -1 = unlimited
@@ -65,6 +68,7 @@ export default function ActivitiesPage() {
     }
 
     setFilteredActivities(filtered);
+    setPage(1); // reset to first page on filter change
   };
 
   const handleFilterChange = (e) => {
@@ -223,9 +227,16 @@ export default function ActivitiesPage() {
 
         {/* Activities Table */}
         <ActivityTable 
-          activities={filteredActivities}
+          activities={filteredActivities.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)}
           onUpdate={fetchActivities}
           onEdit={handleEdit}
+        />
+        <Pagination
+          currentPage={page}
+          totalPages={Math.ceil(filteredActivities.length / PAGE_SIZE)}
+          totalItems={filteredActivities.length}
+          pageSize={PAGE_SIZE}
+          onPageChange={setPage}
         />
       </div>
 

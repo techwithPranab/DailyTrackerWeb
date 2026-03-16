@@ -10,6 +10,7 @@ import PlanUsageBar from '@/components/Subscription/PlanUsageBar';
 import UpgradeBanner from '@/components/Subscription/UpgradeBanner';
 import PlanModal from '@/components/Subscription/PlanModal';
 import usePlanFeatures from '@/hooks/usePlanFeatures';
+import Pagination from '@/components/Layout/Pagination';
 import api from '@/lib/axios';
 
 const CATEGORIES = ['All', 'Appliance', 'Plumbing', 'Electrical', 'HVAC', 'Vehicle', 'Other'];
@@ -24,6 +25,8 @@ export default function UtilitiesPage() {
   const [category, setCategory]     = useState('All');
   const [statusFilter, setStatus]   = useState('All');
   const [showPlanModal, setShowPlanModal] = useState(false);
+  const [page, setPage]             = useState(1);
+  const PAGE_SIZE = 9; // 3-column grid × 3 rows
 
   const { plan, features, isLimitReached, usagePercent } = usePlanFeatures();
   const utilityLimit = features.utilities;   // 2 (free) | 20 (pro)
@@ -42,6 +45,7 @@ export default function UtilitiesPage() {
       const { data } = await api.get('/utilities', { params });
       const list = data.data ?? data.utilities ?? [];
       setUtilities(list);
+      setPage(1); // reset to first page whenever filter/data changes
 
       // Also fetch total (unfiltered) for accurate plan usage
       if (category === 'All' && statusFilter === 'All') {
@@ -193,11 +197,20 @@ export default function UtilitiesPage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {utilities.map(u => (
-              <UtilityCard key={u._id} utility={u} onDeleted={() => handleDeleted(u._id)} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {utilities.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map(u => (
+                <UtilityCard key={u._id} utility={u} onDeleted={() => handleDeleted(u._id)} />
+              ))}
+            </div>
+            <Pagination
+              currentPage={page}
+              totalPages={Math.ceil(utilities.length / PAGE_SIZE)}
+              totalItems={utilities.length}
+              pageSize={PAGE_SIZE}
+              onPageChange={setPage}
+            />
+          </>
         )}
       </div>
 

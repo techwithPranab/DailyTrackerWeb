@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { useState, useEffect } from 'react';
 import ProtectedLayout from '@/components/Layout/ProtectedLayout';
 import PlanGate from '@/components/Subscription/PlanGate';
+import Pagination from '@/components/Layout/Pagination';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
@@ -28,6 +29,8 @@ export default function MilestonesPage() {
   const [showForm,    setShowForm]    = useState(false);
   const [submitting,  setSubmitting]  = useState(false);
   const [formData,    setFormData]    = useState(EMPTY_FORM);
+  const [page,        setPage]        = useState(1);
+  const PAGE_SIZE = 6; // 3-column grid × 2 rows
 
   useEffect(() => {
     Promise.all([fetchMilestones(), fetchActivities()]).finally(() =>
@@ -273,8 +276,9 @@ export default function MilestonesPage() {
 
           {/* Milestones grid */}
           {milestones.length > 0 ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {milestones.map((ms) => {
+            <>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {milestones.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((ms) => {
                 const isLinked  = !!ms.linkedActivityId;
                 const isAchieved = ms.completionStatus === 'Achieved';
                 return (
@@ -353,7 +357,15 @@ export default function MilestonesPage() {
                   </div>
                 );
               })}
-            </div>
+              </div>
+              <Pagination
+                currentPage={page}
+                totalPages={Math.ceil(milestones.length / PAGE_SIZE)}
+                totalItems={milestones.length}
+                pageSize={PAGE_SIZE}
+                onPageChange={setPage}
+              />
+            </>
           ) : (
             <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
               <p className="text-lg">No milestones yet</p>
